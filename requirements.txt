@@ -9,6 +9,7 @@ gunicorn==19.1.1
 httplib2==0.9
 itsdangerous==0.24
 omnijson==0.1.2
+py2neo==2.0.1
 python-dateutil==1.5
 six==1.8.0
 wsgiref==0.1.2

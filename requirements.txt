@@ -3,7 +3,6 @@ Jinja2==2.7.3
 MarkupSafe==0.23
 PyYAML==3.11
 Werkzeug==0.9.6
-bulbs==0.3.29.post20140417
 distribute==0.7.3
 gunicorn==19.1.1
 httplib2==0.9

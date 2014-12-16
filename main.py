@@ -12,14 +12,18 @@ from flask import Flask
     
 # g = Graph(bulbs_config)
 
-from py2neo import Graph
-from py2neo import cypher
-from urlparse import urlparse
+from py2neo import ServiceRoot
+#from py2neo import Graph
+#from py2neo import cypher
+#from urlparse import urlparse
 
-if os.environ.get('NEO4J_REST_URL'):
-  g = Graph(os.environ.get('NEO4J_REST_URL'))
-else:
-  g = Graph()
+graphenedb_url = os.environ.get("GRAPHENEDB_URL", "http://localhost:7474/")
+g = ServiceRoot(graphenedb_url).graph
+
+# if os.environ.get('NEO4J_REST_URL'):
+#   g = Graph(os.environ.get('NEO4J_REST_URL'))
+# else:
+#   g = Graph()
 
 app = Flask(__name__)
 
@@ -27,7 +31,8 @@ app = Flask(__name__)
 def index():
     #n = len(g.V)
     n_rel = len(list(g.match()))
-    return 'Graphs has ' + str(n_rel) + ' relationships.' 
+    print "Neo4j version: ", g.neo4j_version
+    return 'Graph has ' + str(n_rel) + ' relationships.' 
 
 
 # Autostart

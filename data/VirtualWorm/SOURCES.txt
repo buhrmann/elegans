@@ -1,5 +1,0 @@
-Data found here:
-http://canopus.caltech.edu/virtualworm/Virtual%20Worm%20Blend%20File/
-https://github.com/openworm/Blender2NeuroML/tree/master/src/Data
-
-The original blender files used also by OpenWorm.

@@ -1,1 +1,0 @@
-function img = floodUsingEdgePt(inimg, ept)%function img = floodUsingEdgePt(inimg, ept)% Using the edge points ept to flood an enclosed region% Copyright Hanchuan Peng% 20051130c = ept.y;r = ept.x;img = roipoly(inimg,c,r);return;

@@ -1,8 +1,0 @@
-Data found here:
-http://www.wormwiring.org/hermaphrodite/herm.php
-Only connectivity, not positions.
-
-By Emmons, Hall, Brittin, and S. Cook. 
-
-Seems to be based on White et al. 1986.
-

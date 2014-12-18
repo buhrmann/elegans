@@ -1,0 +1,1 @@
+PLNR     A    1    1   S  SMBVR    -  -PLNR     A    1    1   S  SAADR    -  -PLNR     A    2    1   S  SMBVR    -  -PLNR     A    2    1   S  SAADR    -  -PLNR     A    3    1   S  SMBVR    -  -PLNR     A    3    1   S  SAADR    -  -PLNR     A    4    2   S  SMBVR    -  -PLNR     A    5    3   S  SMBVR    -  -

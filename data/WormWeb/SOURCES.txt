@@ -1,0 +1,6 @@
+Data found here:
+http://wormweb.org/details.html
+
+Modified file from japanese CCEP group, which itself seems to be based on White.
+
+Manually removed a tab in line 320 for easier csv processing.

@@ -1,0 +1,21 @@
+{% extends "layout.html" %}
+{% block head %}
+	{{ super() }}
+	<link rel="stylesheet" href={{url_for('static', filename='css/d3.css')}}>
+{% endblock %}    
+
+{% block content %}
+  {% if data %}
+    <div class="page-header">
+      <h1>Graph <small>unfiltered</small></h3>
+    </div>
+
+    <div id="graph"></div>
+  {% endif %}
+{% endblock %}
+
+{% block js_footer %}
+	<script type="text/javascript" src={{url_for('static', filename='js/d3.v3.min.js')}}></script>
+  <script type="text/javascript" src={{url_for('static', filename='js/d3graph.js')}}></script>
+  <script type="text/javascript">graphd3("#graph", {{data|safe}});</script>
+{% endblock %}

@@ -1,0 +1,1 @@
+SIAVR    A    1    1   R  RIVL     *  -SIAVR    A    2    2   R  CEPVR    *  -SIAVR    A    3    3   R  CEPVR    *  -SIAVR    A    4    4   R  RIVL     *  -SIAVR    A    5    5   R  URXR     *  -SIAVR    A    6    6   R  URBR     *  -SIAVR    A    7    7   G  RIBR     -  -SIAVR    A    8    8   R  AVKL     *  -

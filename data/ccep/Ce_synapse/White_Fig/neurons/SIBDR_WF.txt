@@ -1,0 +1,1 @@
+SIBDR    A    1    1   G  AIML     -  -SIBDR    A    2    2   R  ADEL     *  -SIBDR    A    3    3   R  OLQVR    *  -SIBDR    A    4    4   R  URYVR    *  -SIBDR    A    5    5   R  OLQVR    *  -SIBDR    A    6    6   S  RICR     -  -SIBDR    A    6    6   S  SMBDR    -  -SIBDR    A    7    7   G  SIBVR    -  -SIBDR    A    8    8   G  RIBR     -  -

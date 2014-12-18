@@ -1,0 +1,9 @@
+Data found here:
+http://openconnecto.me/data/public/graphs/worm/
+
+279 neurons of the pharynx in graphml.
+
+Based on Chen, Hall, Chklovskii (2006):
+Wiring optimization can relate neuronal structure and function. http://www.pnas.org/content/103/12/4723.abstract.
+Which uses the same data as Varshney, while the latter might be refined.
+

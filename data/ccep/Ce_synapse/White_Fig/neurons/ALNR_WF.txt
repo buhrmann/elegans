@@ -1,0 +1,1 @@
+ALNR     A    1    1   R  RIGR     *  -ALNR     A    2    2   S  SAAVR    -  -ALNR     A    2    2   S  SMDVL    -  -ALNR     A    3    3   S  SMDDR    -  -ALNR     A    3    3   S  RMHR     -  -ALNR     A    4    4   R  RMGR     *  -ALNR     A    5    5   S  SMBDL    -  -ALNR     A    5    5   S  SAAVR    -  -ALNR     A    6    6   S  SAAVR    -  -

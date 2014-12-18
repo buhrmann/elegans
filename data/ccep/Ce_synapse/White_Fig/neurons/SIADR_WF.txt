@@ -1,0 +1,1 @@
+SIADR    A    1    1   R  ADEL     *  -SIADR    A    2    2   R  CEPDL    -  -SIADR    A    3    2   R  CEPDL    -  -SIADR    A    4    3   R  RIAR     -  -SIADR    A    5    4   G  RIBR     -  -

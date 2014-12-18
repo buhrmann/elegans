@@ -1,0 +1,1 @@
+SIBVR    A    1    1   G  RMHL     -  -SIBVR    A    2    2   R  PVCR     *  -SIBVR    A    3    3   R  URYVL    *  -SIBVR    A    4    4   G  RIBL     -  -SIBVR    A    5    5   G  RIBR     -  -SIBVR    B    6    6   R  OLQDR    *  -SIBVR    B    7    7   R  RMDVR    *  -SIBVR    C    8    8   G  SIBDR    -  -

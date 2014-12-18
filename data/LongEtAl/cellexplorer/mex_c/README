@@ -1,0 +1,30 @@
+This folder and subfolder contain the C/C++ codes to generate the mex functions
+that would be needed to run the C. elegans nuclei straightening and segmentation
+pipeline.
+
+** How to compile **
+
+Start your Matlab, and cd the folder "mex_func", then type the command
+
+>> makeosmex_wormseg
+
+Then you should have all mex functions generated under the folder "mex_func".
+
+** Trouble-shooting **
+
+If you cannot compile successfully, there may be two reasons.
+
+(1) You have not installed/setup correctly the c++ mex compiling environment.
+For Mac or Linux, you can run the command "mex -setup" to setup this environment.
+For Windows, depending on which compiler you want to use, the methods to setup 
+are different, - if you'd like to use Open Source MinGW to compile, you can google 
+search "MinGW and Matlab".  
+
+(2) You may not have the public domain libraries libtiff, libjpeg, libzlib installed
+properly. But this is unlikely, as Matlab should have these installed by default. 
+Note that if you want to use the compiled function "loadRaw2Stack_c" to read Zeiss
+LSM file, you will need to use a customary version of libtiff produced by Hanchuan Peng.
+
+Noted by Hanchuan Peng
+2009-Feb-16
+

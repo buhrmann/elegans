@@ -1,0 +1,13 @@
+Data found here:
+https://github.com/openworm/Blender2NeuroML/tree/master/src/Data
+
+Post-processed and exported versions exist here (connectome.csv, wormatlas.csv, neurons.csv):
+https://github.com/openworm/data-viz/tree/master/HivePlots
+
+All cleaned connection data seems to exist in a single spread-sheet:
+https://docs.google.com/spreadsheets/d/1ojEpnCvJ0JYQmPaquAaA0clTVZy05EXOVKL0jcMRQ5I/edit#gid=0
+
+Steve Cooks data:
+Muscles contain the letters "BWM" for body wall muscles. The first letter 'v' indicates a ventral muscle, whereas the first letter 'd' indicates a dorsal muscle. Letter 'R" following BWM indicates a right muscle, and letter "L" indicates a left muscle. DL, VL, DR, and VR make up the four quadrants of the muscles of the c. elegans. The numbers indicate an index on the muscle from the head to the tail of the worm.
+
+From Steve: “The index numbers don't provide any information regrading spatial information of the synapse. They are just an identifier used in our MySQL database. Sorry for the data being a touch dirty. Anything that doesn't look like a neuron is just some previous identifying characteristic assigned when we weren't able to make a solid identification of the neuron process. Anything that has a bracket is a tentative cell identification. You can use this at your own risk.”

@@ -1,0 +1,1 @@
+SIAVL    A    1    1   R  CEPVL    -  -SIAVL    A    2    2   R  CEPVL    *  -SIAVL    A    3    3   R  RIVR     *  -SIAVL    A    4    3   R  RIVR     *  -SIAVL    A    5    4   R  RIAL     *  -SIAVL    A    6    5   R  URBL     *  -SIAVL    A    7    6   R  RMGL     *  -SIAVL    A    8    7   G  RIBL     -  -

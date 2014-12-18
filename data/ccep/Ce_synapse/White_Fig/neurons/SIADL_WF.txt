@@ -1,0 +1,1 @@
+SIADL    A    1    1   R  URBR     *  -SIADL    A    2    2   R  ALMR     *  -SIADL    A    3    3   R  CEPDR    -  -SIADL    A    4    4   R  RIAL     *  -SIADL    A    5    5   R  RIAR     *  -SIADL    A    6    6   G  RIBL     -  -

@@ -1,0 +1,1 @@
+AVG      A    1    1   G  RIFR     -  -AVG      A    2    2   G  RIFL     -  -AVG      B    3    3   R  AVFL     -  -

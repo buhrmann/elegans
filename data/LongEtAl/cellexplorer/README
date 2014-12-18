@@ -1,0 +1,195 @@
+*************************
+*** CellExplorer 1.01 ***
+*************************
+
+============================================
+          What Is This Package/Program
+============================================
+
+This package, called CellExplorer 1.01, contains the currently working Matlab source codes for processing (straightening, 
+segmenting, annotating, and accompanying functions) 3D confocal image stacks of L1 C. elegans larvae. This package can 
+be used for other applications related to 3D cell/nuclei segmentation, quantification, gene expression analysis, 
+automatic cell naming/annotation, cell targeting, etc. This is the supplement for the paper
+
+Fuhui Long, Hanchuan Peng, Xiao Liu, Stuart Kim, and Eugene Myers, "A 3D Digital Atlas of C. elegans and Its Application 
+To Single-Cell Analyses," Nature Methods, 2009.
+
+Check the websites of the authors (e.g. penglab.janelia.org) for further information.
+
+============================================
+  License and Agreement to Use This Package
+============================================
+
+You will have to agree the following terms, before downloading/using/running/editing/changing any portion of codes in 
+this package.
+
+1. This package is free for non-profit research, but needs a special license for any commercial purpose. Please contact
+   Fuhui Long for details.
+
+2. This package, or any portion of it, cannot be redistributed in the original or any revised form without the written 
+   permission from Fuhui Long/Hanchuan Peng/Gene Myers.
+
+3. You agree to appropriately cite this work in your related studies and publications.
+
+4. The software is provided "AS-IS" and without warranty of any kind, expressed, implied or otherwise, including without 
+   limitation, any warranty of merchantability or fitness for a particular purpose.
+
+5. In no event shall any of the above authors or the Howard Hughes Medical Institute be liable for any special, incidental, 
+   indirect or consequential damages of any kind, or any damages whatsoever resulting from loss of use, data or profits, 
+   whether or not advised of the possibility of damage, and on any theory of liability, arising out of or in connection with 
+   the use or performance of this software.
+
+6. In case the source code is provided in this package, the use of this source code constitutes an agreement not to criticize, 
+   in any way, the code-writing style of the authors, including any statements regarding the extent of documentation and 
+   comments present.
+
+7. Neither the name of the Howard Hughes Medical Institute, Janelia Farm Research Campus, nor the name of any of the above 
+   authors, may be used to endorse or promote products derived from this software without specific prior written permission.
+
+
+============================================
+          How to Run the Programs
+============================================
+
+
+Before running the programs under this directory, you will need the following software ready:
+
+* Matlab (http://mathworks.com): the basic platform to run the codes.
+* Matlab toolboxes on image processing, statistics, and spline (http://mathworks.com): some basic functions. 
+* DipImage Matlab toolbox (http://www.diplib.org): reading some files and several other occasional uses.
+* rename or remove the "watershed.m" function in DIPimage toolbox.
+* a C/C++ compiler: only need this in case you cannot run the precompiled mex functions for Matlab.
+* VANO (software page of http://penglab.janelia.org): for visualizing/correcting segmentation results and annotation
+
+The demo program is called "cellexplorer.m", which actually calls "example.m". Under Matlab, you can simply type the command
+
+>>cellexplorer
+
+or
+
+>>example
+
+Then follow the prompted menu choose one of the following:
+
+----------------
+Processing Menu
+----------------
+
+1. Checking straightening results 
+2. Preprocessing for GFP/RFP/DAPI segmeneation 
+3. GFP/RFP segmeneation 
+4. Generating VANO annotation files for GFP (for segmentation correction) 
+5. Manually check and correct GFP segmentation in VANO 
+6. Refine GFP segmentation results 
+7. DAPI segmentation 
+8. Generating VANO annotation files for DAPI 
+9. Automated GFP annotation 
+10. Manually check GFP annotation results and manually annotate some difficult cells in VANO 
+11. Automated annotation of the remaining cells 
+12. Correct automated annotation errors 
+13. Analyzing gene expression levels 
+14. Quit
+
+One example dataset has been built into example.m file and you should be able to run it sequentially using the
+options 1-13. If you encounter a problem, it is likely you have NOT appropriately set up the Matlab environment
+to run the program, - see the Trouble Shooting section below.
+
+If you want to run the program on your own image data stacks, you can change the settings in the example.m file. 
+The places in that file need to be changed have been marked with a "%change" Matlab comment.
+
+Note that worm body straightening function is also provided. If you have a curved worm to straighten, you can 
+un-comment an option 0 in the processing menu of example.m file.  
+
+
+============================================
+            Data Files
+============================================
+
+Along with the package a sample dataset "eft3RW10035L1" sub-folder is included in the "data" directory. All the files 
+under that subfolder "eft3RW10035L1" and the further sub-subfolders, except the file called 
+
+eft3RW10035L1_0125071_crop_straight.raw
+
+can all be deleted if you want to clean the data, as all these delete-able files/sub-subfolders can all be recomputed
+using this package. But note that it is not encouraged to delete these "redundant" files, if you would like to run
+only part of the pipeline, - critical data files will be missing if you delete these redundant files.
+
+The basic data file "eft3RW10035L1_0125071_crop_straight.raw" can be opened using the V3D program (http://penglab.janelia.org)
+and visualized in 3D, or converted as 3D TIFF stacks that can be opened by other image analysis programs.
+
+The expert-curated manual annotation files are also included in a sub-subfolder under the directory "eft3RW10035L1":
+
+manual_annotated
+
+You can drag and drop the .ano file under this folder to open the manual annotation.
+
+** Special note on July 20, 2009: due to the storage size limitation at the Nature Methods website, the VANO linker file
+for this example, i.e. eft3RW10035L1_0125071.ano, has a pointer to the image file at the upper level, i.e. 
+eft3RW10035L1_0125071_crop_straight.raw. Thus if you re-save the example data, you may need to put the files under
+the same directory, or edit the .ano file respectively. See the VANO documentation for further information of .ano
+file format.
+
+
+============================================
+            Trouble-Shooting
+============================================
+
+This package is a snap-shot of the current working version of the L1 worm image stack processing and analysis.
+This package is provided as is, and should not be assumed to be bug-free, especially during the stage of releasing 
+the codes we removed some debugging codes that may have unseen effect to the running results, although we tried
+to minimize the effect if there were one. Running this package is at your own risk, - please note that we are not 
+responsible for any damage by running this package (see the License and Agreement above for details).
+
+A usual problem to run this package is that the DIPimage library is hard to install. We suggest the user read the
+DIPImage installation carefully and choose the correct setup. Besides, the user should always add the following
+folders into the Matlab path, and also initialize the toolbox, to ensure some DIPImage functions can be found:
+
+>> addpath('/path_to_dipimage/dipimage/')
+>> addpath('/path_to_dipimage/dipimage_mex/')
+>> addpath('/path_to_dipimage/diplib/')
+>> dip_initialise
+
+One problem of DIPimage toolbox is that it contains a program called "watershed.m" which shares the very same name
+with the Matlab's watershed function. The DIPimage watershed function must be removed or renamed to ensure the
+correctness of the segmentation of this program, which is based on Matlab watershed program.
+
+Matlab has two watershed functions (depending on the Matlab version). One is called "watershed" and the other is called
+"watershed_old". When this version is tested on Matlab 7.6.0 (R2008a), the file "watershed_old" actually works better.
+Thus "watershed_old" has been set as the default. If you have an old Matlab version, you may want to switch between them 
+(lines 85/86 of the file rgnWatershed62.m) to find the correct one to produce more meaningful results for you.
+
+Another problem a user may encounter is that some mex functions developed in this package may not work. If this 
+happens, the user should re-compile the mex functions by running the following commands (assuming the current 
+directory is the directory containing the unzipped version of this package):
+
+>> cd mex_c/mex_func/
+>> makeosmex_wormseg
+ (then copy all platform-dependent mex functions to under the "mex_c/mex_func/" to the package folder)
+>> cd ../../
+
+When running the demo program "example.m", if some step fails, it is likely that there is no enough memory, or some 
+file names may get messed up. You may conatct the author of this package, Fuhui Long (longf@janelia.hhmi.org) for help.
+
+
+=============================================
+           Acknowledgement
+=============================================
+
+This package contains programs developed by other people and/or for other projects. Particularly, the following programs
+are used:
+
+* John Weaver's code for bipartite graph matching: munkres.h/cpp
+* Hanchuan Peng's Matlab/C mex functions for RAW file reading/writing and graph search: loadRaw2Stack_c.cpp, saveStack2File_c.cpp, 
+  bfs.cpp, dfs.cpp, checkMachineEndian, etc.
+* DIPimage toolbox is used for displaying some images and file I/O. 
+
+=============================================
+             Contact
+=============================================
+
+More information about this package can be found at the authors' websites (e.g. penglab.janelia.org).
+
+Contact Fuhui Long (longf@janelia.hhmi.org) if you have a question.
+
+<2009-July-20>
+ 

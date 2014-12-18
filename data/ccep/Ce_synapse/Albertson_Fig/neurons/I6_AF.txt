@@ -1,0 +1,1 @@
+I6       A    1    1   R    I3      -  -I6       A    2    2   S    M4      -  -I6       A    3    3   R    I2      -  -I6       A    4    4   S    NSM     -  -I6       A    5    5   R    NSM     -  -I6       A    6    6   G    M4      -  -I6       A    7    7   G    M5      -  -I6       B    8    8   G    M5      -  -

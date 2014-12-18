@@ -1,0 +1,1 @@
+AVL      A    1    1   S  PVPR     -  -AVL      A    2    2   R  DVB      *  -AVL      A    3    3   R  RIS      *  -AVL      A    4    4   R  DVB      *  -AVL      A    5    5   R  RIS      *  -

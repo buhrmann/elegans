@@ -1,0 +1,1 @@
+I3       D    1    1   R    M1      v  -I3       D    2    2   G    M2      v  -I3       D    2    3   S    M2      v  -I3       D    3    4   S    M3      -  -I3       D    4    5   S    MC      v  af3I3       D    4    5   S    I1      v  af3I3       D    5    6   S    NSM     -  -

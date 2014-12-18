@@ -1,0 +1,1 @@
+MCL      B    1    1   -    mc2     -  af1MCL      B    2    2   R    I1      -  -MCL      B    2    3   G    M2      -  -MCL      B    2    4   R    I2      v  -MCL      B    2    5   R    M1      v  -MCL      C    3    6   -    mc2     -  af1MCL      D    4    7   G    M2      -  -

@@ -1,0 +1,1 @@
+SIBDL    A    1    1   R  OLQVL    *  -SIBDL    A    2    2   R  OLQVL    *  -SIBDL    A    3    2   R  OLQVL    *  -SIBDL    A    4    3   G  SIBVL    -  -SIBDL    A    5    4   G  RIBL     -  -

@@ -1,0 +1,1 @@
+BDU   HSN    -  -  -  1  - -       -BDU   HSN    -  -  -  -  1 AVA     -BDU   HSN    -  -  -  -  1 SAAD    -BDU   AVA    -  -  -  -  1 PVC     -BDU   AVA    -  -  -  -  1 HSN     -BDU   PVC    -  -  -  1  - -       -BDU   PVC    -  -  -  -  1 AVA     -BDU   ADE    -  -  -  1  - -       -BDU   SAAD   -  -  -  -  1 HSN     -

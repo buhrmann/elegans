@@ -11,13 +11,12 @@ PASSWORD = 'inform'
 app = Flask(__name__)
 app.config.from_object(__name__)
 
-@app.route('/')
-def index():
+@app.route('/info')
+def info():
     o = neo.g.order
     s = neo.g.size
     print o, s
     return 'Graph has ' + str(o) + ' neurons and ' + str(s) +  ' synapses.' 
-
 
 @app.route('/build')
 def build():
@@ -27,8 +26,9 @@ def build():
     return redirect(url_for('graph'))
 
 
+@app.route('/')
 @app.route('/graph')
-def graph():
+def index():
     ns = neo.neurons()
     ss = neo.synapsesD3(ns, 0)
     d = {'neurons':ns, 'synapses':ss}

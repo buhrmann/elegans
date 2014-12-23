@@ -23,16 +23,26 @@ def index():
 def build():
     neo.addNeurons(True)
     neo.addSynapses(False)
+    neo.addNodeDegrees()
     return redirect(url_for('graph'))
 
 
 @app.route('/graph')
 def graph():
     ns = neo.neurons()
-    ss = neo.synapsesId(ns, 5)
+    ss = neo.synapsesD3(ns, 0)
     d = {'neurons':ns, 'synapses':ss}
     j = json.dumps(d)
     return render_template('graph.html', data=j)
+
+
+@app.route('/sigma')
+def sigma():
+    ns = neo.neuronsSigma()
+    ss = neo.synapsesSigma(ns, 2)
+    d = {'nodes':ns, 'edges':ss}
+    j = json.dumps(d)
+    return render_template('sigma.html', data=j)
 
 
 @app.route('/login', methods=['GET', 'POST'])

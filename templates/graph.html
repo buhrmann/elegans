@@ -1,23 +1,77 @@
 {% extends "layout.html" %}
 {% block head %}
-	{{ super() }}
-	<link rel="stylesheet" href={{url_for('static', filename='css/d3.css')}}>
+	{{ super() }}	
+  <style type="text/css">
+    body {
+      margin: 0;
+    }
+    #graph {
+      position: absolute;
+      top: 10%;
+      left: 5%;
+      width: 95%;
+      height: 95%;
+      margin: 0 auto;
+      background-color: "#ddd";
+    }
+    .uiwidget {      
+      position:absolute;
+      display:block;
+      top: 20px;
+      left: 20px;
+      width: 200px;
+      font-size: 12px;
+    }
+  </style>
 {% endblock %}    
 
 {% block content %}
-  {% if data %}
-    <div class="page-header">
-      <h1>Graph <small>unfiltered</small></h3>
-    </div>
 
+  {% if data %}
     <div id="graph"></div>
+     <div class="uiwidget">
+      <form>
+        <fieldset>
+        <legend>Elegans</legend>
+        <div class="input-group input-group-sm">
+          <input id="search" type="search" placeholder="Select neuron" class="form-control"/>
+<!--           <span class="input-group-btn">
+            <button class="btn btn-default" type="button">Go!</button>
+          </span>    -->       
+        </div>
+        <p><div class="btn-group btn-group-sm" id="prune-radio" data-toggle="buttons-radio">
+          <button id="prune1" type="button" data-toggle="button" name="option" value="1" class="btn btn-default active">Prune</button>
+          <button id="prune2" type="button" data-toggle="button" name="option" value="2" class="btn btn-default">Hide</button>
+        </div></p>
+        <p><label for="ndegslider">node degree [0-200]</label>
+        <input type="range" id="ndegslider" name="ndeg" value="2" min="0" max="200" oninput="filterNDeg(value)">
+        <output for="thresholdSlider" id="ndeglabel">2</output></p>
+        <p><label for="wminslider">min weight [0-40]</label>
+        <input type="range" id="wminslider" name="wmin" value="3" min="0" max="40" oninput="filterWMin(value)">
+        <output for="wminslider" id="wminlabel">3</output></p>
+      </fieldset>
+      </form>
+    </div>
   {% endif %}
 {% endblock %}
 
 {% block js_footer %}
+{{ super() }} 
 	<script type="text/javascript" src={{url_for('static', filename='js/d3.v3.min.js')}}></script>
-  <script type="text/javascript" src={{url_for('static', filename='js/d3graph.js')}}></script>
-  <script type='text/javascript' src="http://code.jquery.com/ui/1.11.0/jquery-ui.min.js"> </script>
-  <script type='text/javascript' src="http://code.jquery.com/ui/1.11.0/themes/smoothness/jquery-ui.css"> </script>  
-  <script type="text/javascript">graphd3("#graph", {{data|safe}});</script>
+  <script type="text/javascript" src={{url_for('static', filename='js/crossfilter.min.js')}}></script>  
+  <script>
+  $(function() {
+
+    $('#prune-radio button').click(function() {
+      $(this).addClass('active').siblings().removeClass('active'); });
+
+    $("#search").keyup(function(event){
+      event.preventDefault();
+      if(event.which == 13)
+        searchNode();
+    });
+  });
+  </script>
+  <script type="text/javascript" src={{url_for('static', filename='js/d3graph.js')}}></script>  
+  <script type="text/javascript">graph("#graph", {{data|safe}});</script>
 {% endblock %}

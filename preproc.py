@@ -57,7 +57,7 @@ def kaiserPositionDf():
     pos_labels = pd.io.parsers.read_csv(data_folder + kaiser_pos_lab_fnm, header=None)
     positions = pd.io.parsers.read_csv(data_folder + kaiser_pos_fnm, header=None)
     df = pd.concat([pos_labels, positions], axis=1, ignore_index=True)
-    df.columns = ["label", "x", "y"]
+    df.columns = ["label", "kx", "ky"]
     df["label"] = [zeroLead(x) for x in df["label"]]
     df = df.set_index("label")
     return df
@@ -134,8 +134,8 @@ def neuronsDf():
     for node in nodes_only:
         mirror = symNodeName(node)
         print "Copying position for ", node, " from ", mirror
-        df.loc[node, 'x'] = df.loc[mirror, 'x']
-        df.loc[node, 'y'] = df.loc[mirror, 'y']
+        df.loc[node, 'kx'] = df.loc[mirror, 'kx']
+        df.loc[node, 'ky'] = df.loc[mirror, 'ky']
 
     # Join with info about neuron class and type
     ww_nodes = wwNeuronDf()

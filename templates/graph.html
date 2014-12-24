@@ -59,6 +59,7 @@
 {{ super() }} 
 	<script type="text/javascript" src={{url_for('static', filename='js/d3.v3.min.js')}}></script>
   <script type="text/javascript" src={{url_for('static', filename='js/crossfilter.min.js')}}></script>  
+  <script type="text/javascript" src={{url_for('static', filename='js/colorbrewer.v1.min.js')}}></script>  
   <script>
   $(function() {
 
@@ -72,6 +73,6 @@
     });
   });
   </script>
-  <script type="text/javascript" src={{url_for('static', filename='js/d3graph.js')}}></script>  
+  <script type="text/javascript" src={{url_for('static', filename='js/d3graph.js')}}></script>    
   <script type="text/javascript">graph("#graph", {{data|safe}});</script>
 {% endblock %}

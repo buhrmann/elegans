@@ -27,8 +27,8 @@ graph = function(id, d) {
     data = d;
     data.neurons.forEach(function(d) { 
             d.degree = (d.inD && d.outD) ? d.inD + d.outD : 0;
-            d.x = 1;
-            d.y = 1;
+            d.x = 500;
+            d.y = 500;
 
     });
     
@@ -41,22 +41,25 @@ graph = function(id, d) {
     var nodeLayer = svg.append("g");
 
     // Scales
-    nodeColorScale = d3.scale.category20();
+    //nodeColorScale = d3.scale.category20();
+    colors = ["#00ADEF", "#ED008C", "#F5892D", "#BBCB5F", "#999", "#ccc"];
+    nodeColorScale = d3.scale.ordinal().range(colors);
+    //nodeColorScale = d3.scale.ordinal().range(colorbrewer["Accent"][6].reverse());
     
     var degreeDomain = d3.extent(data.neurons, function(n) { return n.degree; });
     nodeRadiusScale = d3.scale.linear().domain(degreeDomain).range([5,30]);
 
     var weightDomain = d3.extent(data.synapses, function(s) { return s.weight; });
-    linkWeightScale = d3.scale.linear().domain(weightDomain).range([1,10]);
+    linkWeightScale = d3.scale.linear().domain(weightDomain).range([1,3]);
 
     force = d3.layout.force()
         .nodes(nodes)
         .links(links)
-        .charge(-200)
+        .charge(-250)
         .linkDistance(120)
         .linkStrength(0.9)
         .friction(0.5)
-        .gravity(0.5)
+        .gravity(0.3)
         .size([width, height])
         .on("tick", tick);
 
@@ -197,6 +200,7 @@ update = function(n, l) {
 
     force.nodes(nodes);
     force.links(links);
+    force.start();
 
     // Update links
     link = link.data(force.links(), function(d) { return d.id; });
@@ -204,7 +208,8 @@ update = function(n, l) {
     link.enter().append("line")
         .attr("class", "link")
         .classed("junction", function(d) { return (d.type == 'EJ' || d.type == 'NMJ')})
-        .style("stroke-width", function(d) { return linkWeightScale(d.weight); });
+        .style("stroke-width", function(d) { return linkWeightScale(d.weight); })
+        .style("stroke", function(d) { return nodeColorScale(d.source.type); });
 
     link.exit().remove();
 
@@ -239,7 +244,6 @@ update = function(n, l) {
 
     node.exit().remove();
 
-    force.start();
 }
 
 

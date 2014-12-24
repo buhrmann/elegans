@@ -23,7 +23,7 @@ def build():
     neo.addNeurons(True)
     neo.addSynapses(False)
     neo.addNodeDegrees()
-    return redirect(url_for('graph'))
+    return redirect(url_for('index'))
 
 
 @app.route('/')

@@ -220,7 +220,7 @@ update = function(n, l) {
         .attr("class", "node")
         .call(force.drag)
         //.on('click', connectedNodes);
-        .on('click', function(d) { window.open(d.link, "_blank");});
+        .on('dblclick', function(d) { window.open(d.link, "_blank");});
 
     nodeEnter.append("circle")
         .attr("r", function(d) { return nodeRadiusScale(d.degree); })

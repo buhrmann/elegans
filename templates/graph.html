@@ -19,12 +19,12 @@
           </div><!-- /btn-group -->
           <input id="group2" type="search" placeholder="Group" size="4" maxlength="4" class="form-control"/>
         </div></p>
-        <p><label for="subwslider">Min weight [0-10]</label>
-        <input type="range" id="subwslider" name="subw" value="0" min="0" max="10" oninput="document.getElementById('subwlabel').value = value;">
-        <output for="subwSlider" id="subwlabel">0</output></p>
-        <p><label for="subpslider">Max path length [0-4]</label>
-        <input type="range" id="subpslider" name="subp" value="0" min="0" max="4" oninput="document.getElementById('subplabel').value = value;">
-        <output for="subpSlider" id="subplabel">0</output></p>
+        <p><label for="subwslider">Min weight [1-10]</label>
+        <input type="range" id="subwslider" name="subw" value="1" min="1" max="10" oninput="document.getElementById('subwlabel').value = value;">
+        <output for="subwSlider" id="subwlabel">1</output></p>
+        <p><label for="subpslider">Max path length [1-4]</label>
+        <input type="range" id="subpslider" name="subp" value="1" min="1" max="4" oninput="document.getElementById('subplabel').value = value;">
+        <output for="subpSlider" id="subplabel">1</output></p>
         <button class="btn btn-default" type="button" onclick="subGraph();">Fetch!</button>
         <button class="btn btn-default" type="button" onclick="graphReset();">Reset</button>
 

@@ -67,9 +67,6 @@ def addSynapses(clear):
 
 
 def addNodeDegrees():
-    
-    # sIn  = "MATCH (n)<-[r]-(m) With n as n, count(r) as inD SET n.inD = CASE inD WHEN NULL THEN 0 ELSE inD END"
-    # sOut = "OPTIONAL MATCH (n)-[r]->(m) With n as n, count(r) as outD SET n.outD = CASE outD WHEN NULL THEN 0 ELSE outD END"
     sIn = "MATCH (n) OPTIONAL MATCH (n)<-[r]-(m) WITH n as n, COUNT(r) as inD SET n.inD=inD"
     sOut = "MATCH (n) OPTIONAL MATCH (n)-[r]->(m) WITH n as n, COUNT(r) as outD SET n.outD=outD"
     total = "MATCH (n) SET n.D = (n.inD + n.outD)"

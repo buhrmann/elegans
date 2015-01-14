@@ -138,7 +138,7 @@ function filter(ndeg, wmin) {
 
     // Nodes
     nodesDegDim.filter([ndeg, Infinity]);
-    n = nodesDegDim.top(Infinity);
+    var n = nodesDegDim.top(Infinity);
     nodeIds = d3.set(n.map(function(d) { return d.id; }));
 
 
@@ -148,8 +148,19 @@ function filter(ndeg, wmin) {
         return nodeIds.has(d.from) && nodeIds.has(d.to);
     });
     edgesConDim.filter(function(d) { return d;});
-    e = edgesConDim.top(Infinity);
+    var e = edgesConDim.top(Infinity);
     edgesConDim.dispose();
+
+    // Filter unconnected nodes
+    var fromIds = e.map(function(d) { return d.from; });
+    var toIds = e.map(function(d) { return d.to; });
+    var edgeIds = d3.set(fromIds.concat(toIds));
+    var ncon = nfilter.dimension(function(d) {
+        return edgeIds.has(d.id);
+    });
+    ncon.filter(function(d) { return d; });
+    n = ncon.top(Infinity);
+    ncon.dispose();
 
     if(prune){
         update(n, e);
@@ -213,8 +224,13 @@ update = function(n, l) {
     nodes = n;
     links = l;
 
+    var c = Math.min(-700 + wminVal * 100, -250);
+    var ld = Math.max(180 - wminVal * 10, 120);
+    console.log(c, ld);
     force.nodes(nodes);
     force.links(links);
+    force.charge(c);
+    force.linkDistance(ld);
     force.start();
 
     // Update links

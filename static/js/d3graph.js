@@ -6,7 +6,8 @@ var force;
 var nodeColorScale;
 var nodeRadiusScale;
 var linkWeightScale;
-var nfilter, efilter;
+var nfilter = crossfilter(), 
+    efilter = crossfilter();
 var nodesDegDim, edgesWeightDim;
 var nodesConDim, edgesConDim;
 var nodes = [];
@@ -25,11 +26,11 @@ var highlightId = -1;
 graph = function(id, d) {
 
     data = d;
-    data.neurons.forEach(function(d) { 
-            d.degree = (d.inD && d.outD) ? d.inD + d.outD : 0;
-            d.x = 500;
-            d.y = 500;
-
+    var n = data.neurons.length;
+    var s = width / 1;
+    data.neurons.forEach(function(d, i) { 
+        d.x = d.y = s/n * i;
+        //d.fixed = true;
     });
     
     // Containers
@@ -46,11 +47,11 @@ graph = function(id, d) {
     nodeColorScale = d3.scale.ordinal().range(colors);
     //nodeColorScale = d3.scale.ordinal().range(colorbrewer["Accent"][6].reverse());
     
-    var degreeDomain = d3.extent(data.neurons, function(n) { return n.degree; });
+    var degreeDomain = d3.extent(data.neurons, function(n) { return n.D; });
     nodeRadiusScale = d3.scale.linear().domain(degreeDomain).range([5,30]);
 
     var weightDomain = d3.extent(data.synapses, function(s) { return s.weight; });
-    linkWeightScale = d3.scale.linear().domain(weightDomain).range([1,3]);
+    linkWeightScale = d3.scale.linear().domain(weightDomain).range([1,5]);
 
     force = d3.layout.force()
         .nodes(nodes)
@@ -74,21 +75,35 @@ graph = function(id, d) {
     })    
 
     // Crossfilter
-    nfilter = crossfilter(data['neurons']);
-    efilter = crossfilter(data['synapses']);
-    nodesDegDim = nfilter.dimension(function(d) { return d.degree; });
+    nfilter.add(data['neurons']);
+    efilter.add(data['synapses']);
+    nodesDegDim = nfilter.dimension(function(d) { return d.D; });
     edgesWeightDim = efilter.dimension(function(d) { return d.weight; });
 
     //Search    
-    var optArray = data.neurons.map(function(d) { return d.name;} ).sort();
+    var optArray = d3.set(data.neurons.map(function(d) { return d.group;} ).sort()).values();
     $(function () {
-        $("#search").autocomplete({source: optArray});
+        $("#group1").autocomplete({source: optArray});
+        $("#group2").autocomplete({source: optArray});
     });
 
     update(data.neurons, data.synapses);
+
     filter(ndegVal, wminVal);
 
     buildAdjacency();
+}
+
+function updateCrossFilter(n, s) {
+    nodesDegDim.filter(null);
+    edgesWeightDim.filter(null);
+    nfilter.remove();
+    efilter.remove();
+    nfilter.add(n);
+    efilter.add(s);    
+
+    update(n, s);
+    filter(ndegVal, wminVal);
 }
 
 
@@ -176,7 +191,7 @@ function htmlForNode(d){
         "Group: " + d.group + "<br>" +
         "Type: " + d.type + "<br>" +
         "Ganglion: " + d.AYGanglionDesignation + "<br>" +
-        "Degrees:" + "<br>&emsp;" + "in " + d.inD + " out " + d.outD + " total " + d.degree + "<br>";
+        "Degrees:" + "<br>&emsp;" + "in " + d.inD + " out " + d.outD + " total " + d.D + "<br>";
     return str;
 }
 
@@ -223,7 +238,7 @@ update = function(n, l) {
         .on('dblclick', function(d) { window.open(d.link, "_blank");});
 
     nodeEnter.append("circle")
-        .attr("r", function(d) { return nodeRadiusScale(d.degree); })
+        .attr("r", function(d) { return nodeRadiusScale(d.D); })
         .style("fill", function(d) { return nodeColorScale(d.type); });
 
     nodeEnter.append("text")
@@ -255,7 +270,7 @@ tick = function() {
             .attr("y2", function(d) { return d.target.y; });
 
         node.attr("transform", function (d) { return "translate(" + d.x + "," + d.y + ")"; });
-        node.each(collide(0.5));
+        node.each(collide(0.2));
     });
 }
 
@@ -264,7 +279,7 @@ collide = function(alpha) {
     
     var quadtree = d3.geom.quadtree(nodes);
     return function(d) {
-        var radius = nodeRadiusScale(d.degree);
+        var radius = nodeRadiusScale(d.D);
         var rb = 2*radius + padding,
         nx1 = d.x - rb,
         nx2 = d.x + rb,
@@ -312,10 +327,41 @@ function connectedNodes(d) {
 
 
 function searchNode() {
-    var selectedVal = document.getElementById('search').value;
+    var selectedVal = document.getElementById('group1').value;
     svg = d3.select("svg");
     var sel = node.filter(function(d) { return d.name == selectedVal; })
     connectedNodes(sel.data()[0]);
+}
+
+
+function graphReset() {
+    $.getJSON($SCRIPT_ROOT + '/_reset', function(d) {
+            data = d.result;
+            updateCrossFilter(data['neurons'], data['synapses']);        
+          });
+          return false;
+}
+
+
+function subGraph() {
+    var g1 = document.getElementById('group1').value;
+    var g2 = document.getElementById('group2').value;
+    var w = document.getElementById('subwslider').value;
+    var l = document.getElementById('subpslider').value;
+    var dir = $('#dirButton').text();
+    //dir = dir.slice(2, dir.length-2);
+    $.getJSON($SCRIPT_ROOT + '/_subgraph', {
+        group1: g1,
+        group2: g2,
+        minWeight: w,
+        maxLength: l,
+        dir: dir
+      }, function(d) {
+        //console.log(d.result);
+        data = d.result;
+        updateCrossFilter(data['neurons'], data['synapses']);        
+      });
+      return false;
 }
 
 	

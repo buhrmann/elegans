@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, flash, url_for, session, redirect
+from flask import Flask, render_template, request, flash, url_for, session, redirect, jsonify
 import json
 import neo
 
@@ -34,6 +34,25 @@ def index():
     d = {'neurons':ns, 'synapses':ss}
     j = json.dumps(d)
     return render_template('graph.html', data=j)
+
+
+@app.route('/_subgraph')
+def subgraph():
+    g1 = request.args.get('group1', "no group1", type=str)
+    g2 = request.args.get('group2', "no group2", type=str)
+    w = request.args.get('minWeight', 1, type=int)
+    l = request.args.get('maxLength', 2, type=int)
+    dir = request.args.get('dir', '->', type=str)
+    res = neo.subgraph(g1, g2, l, w, dir)
+    return jsonify(result=res)
+
+
+@app.route('/_reset')
+def reset():
+    ns = neo.neurons()
+    ss = neo.synapsesD3(ns, 0)
+    res = {'neurons':ns, 'synapses':ss}
+    return jsonify(result=res)
 
 
 @app.route('/sigma')

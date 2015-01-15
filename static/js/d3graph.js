@@ -430,10 +430,16 @@ function searchNode() {
 
 function graphReset() {
     $.getJSON($SCRIPT_ROOT + '/_reset', function(d) {
-            data = d.result;
-            updateCrossFilter(data['neurons'], data['synapses']);        
-          });
-          return false;
+        data = d.result;
+        $('#wminslider').val(3);
+        $('#ndegslider').val(1);
+        wminVal = 3;
+        ndegVal = 1;
+        document.querySelector('#wminlabel').value = 3;
+        document.querySelector('#ndeglabel').value = 1;
+        updateCrossFilter(data['neurons'], data['synapses']);        
+      });
+    return false;
 }
 
 

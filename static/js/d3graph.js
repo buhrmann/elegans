@@ -1,6 +1,6 @@
 // Setup
 var width = 1000;
-var height = 800;
+var height = 1000;
 var data;
 var force;
 var nodeColorScale;
@@ -27,9 +27,11 @@ graph = function(id, d) {
 
     data = d;
     var n = data.neurons.length;
-    var s = width / 1;
+    n = Math.floor(Math.sqrt(n))
+    var s = width / (n+2);
     data.neurons.forEach(function(d, i) { 
-        d.x = d.y = s/n * i;
+        d.x = (i / n) * s;
+        d.y = (i % n) * s;
         //d.fixed = true;
     });
     
@@ -67,12 +69,12 @@ graph = function(id, d) {
     node = nodeLayer.selectAll(".node");
     link = linkLayer.selectAll(".link");  
 
-    svg.on("click", function() {    
-        node.style("opacity", 1);
-        link.style("opacity", 1);
-        highlight = 0;
-        d3.event.stopPropagation();
-    })    
+    // svg.on("click", function() {    
+    //     node.style("opacity", 1);
+    //     link.style("opacity", 0.25);
+    //     highlight = 0;
+    //     d3.event.stopPropagation();
+    // });  
 
     // Crossfilter
     nfilter.add(data['neurons']);
@@ -178,7 +180,7 @@ function filter(ndeg, wmin) {
             if (!edgeIds.has(d.id))
                 return "0";
             else
-                return "1";
+                return "0.25";
         });
     }
 
@@ -186,14 +188,9 @@ function filter(ndeg, wmin) {
     $(function () {
         $("#search").autocomplete({source: optArray});
     });
-    
-}
-
-
-function removePopovers() {
-  $('.popover').each(function() {
-    $(this).remove();
-  }); 
+ 
+    document.getElementById('stats-n').innerHTML = n.length;
+    document.getElementById('stats-s').innerHTML = e.length;
 }
 
 
@@ -206,6 +203,26 @@ function htmlForNode(d){
     return str;
 }
 
+function htmlTabForNode(d){
+    var str = 
+    '<ul class="list-group">' +
+        '<li class="list-group-item"><span class="badge stats-item">' + d.group + '</span>Group</li>' +
+        '<li class="list-group-item"><span class="badge stats-item">' + d.type + '</span>Type</li>' +
+        '<li class="list-group-item"><span class="badge stats-item">' + d.AYGanglionDesignation + '</span>Ganglion</li>' +
+        '<li class="list-group-item"><span class="badge stats-item">' + d.inD + '</span>In Degree</li>' +
+        '<li class="list-group-item"><span class="badge stats-item">' + d.outD + '</span>Out Degree</li>' +
+        '<li class="list-group-item"><span class="badge stats-item">' + d.AYNbr + '</span>AYNbr</li>' +
+        '<li class="list-group-item"><a href="' + d.link + 
+            '"><span class="glyphicon glyphicon-new-window pull-right"></span>In Worm Atlas </a></li>' +
+    '</ul>'
+    return str;
+}
+
+function removePopovers() {
+  $('.popover').each(function() {
+    $(this).remove();
+  }); 
+}
 
 function showPopover(d, dir) {
   $(this).popover({
@@ -219,13 +236,24 @@ function showPopover(d, dir) {
   $(this).popover('show');
 }
 
+function removeNodeInfo() {
+    document.getElementById("nodeinfo").innerHTML = "";
+    document.getElementById("node-heading").innerHTML = "Node Info";
+}
+
+function showNodeInfo(d) {
+    var minStr = "<a href='"+ "javascript:removeNodeInfo()" + "'><span class='glyphicon glyphicon-resize-small pull-right'></span></a>"
+    document.getElementById("nodeinfo").innerHTML = htmlTabForNode(d);
+    document.getElementById("node-heading").innerHTML = d.name + "<small>" + minStr + "</small>";
+}
+
 
 update = function(n, l) {
     nodes = n;
     links = l;
 
     var c = Math.min(-700 + wminVal * 100, -250);
-    var ld = Math.max(180 - wminVal * 10, 120);
+    var ld = Math.max(180 - wminVal * 10, 40);
     console.log(c, ld);
     force.nodes(nodes);
     force.links(links);
@@ -240,7 +268,8 @@ update = function(n, l) {
         .attr("class", "link")
         .classed("junction", function(d) { return (d.type == 'EJ' || d.type == 'NMJ')})
         .style("stroke-width", function(d) { return linkWeightScale(d.weight); })
-        .style("stroke", function(d) { return nodeColorScale(d.source.type); });
+        .style("stroke", function(d) { return nodeColorScale(d.source.type); })
+        .style("opacity", 0.25);
 
     link.exit().remove();
 
@@ -249,9 +278,9 @@ update = function(n, l) {
         
     var nodeEnter = node.enter().append("g")
         .attr("class", "node")
-        .call(force.drag)
+        .call(force.drag);
         //.on('click', connectedNodes);
-        .on('dblclick', function(d) { window.open(d.link, "_blank");});
+        //.on('dblclick', function(d) { window.open(d.link, "_blank");});
 
     nodeEnter.append("circle")
         .attr("r", function(d) { return nodeRadiusScale(d.D); })
@@ -264,12 +293,13 @@ update = function(n, l) {
         .text(function(d) { return d.name; });
 
     nodeEnter.on("mouseover", function(d) {
-        showPopover.call(this, d, 'auto top');
-        connectedNodes(d);   
+        //showPopover.call(this, d, 'auto top');
+        showNodeInfo(d);        
+        connectedNodes(d, this);   
     })
 
     nodeEnter.on("mouseout", function(d) {
-        removePopovers();
+        //removePopovers();
         connectedNodes(null);
     })
 
@@ -320,13 +350,15 @@ collide = function(alpha) {
 }
 
 
-function connectedNodes(d) {    
+function connectedNodes(d, elem) {    
     if (d != null && (highlight == 0 || highlightedId != d.id)) {
         //Reduce the opacity of all but the neighbouring nodes
         highlightedId = d.id;
+        d3.select(elem).select("circle").style("stroke", "#000");
         node.style("opacity", function (o) {
             return neighboring(d, o) | neighboring(o, d) ? 1 : 0.1;
         });
+
         link.style("opacity", function (o) {
             return d.id==o.from | d.id==o.to ? 1 : 0.05;
         });
@@ -335,7 +367,8 @@ function connectedNodes(d) {
     } else {
         //Put them back to opacity=1
         node.style("opacity", 1);
-        link.style("opacity", 1);
+        node.select("circle").style("stroke", "#fff");
+        link.style("opacity", 0.25);
         highlight = 0;
     }
     d3.event.stopPropagation();
@@ -365,7 +398,6 @@ function subGraph() {
     var w = document.getElementById('subwslider').value;
     var l = document.getElementById('subpslider').value;
     var dir = $('#dirButton').text();
-    //dir = dir.slice(2, dir.length-2);
     $.getJSON($SCRIPT_ROOT + '/_subgraph', {
         group1: g1,
         group2: g2,

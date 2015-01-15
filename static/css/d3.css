@@ -61,6 +61,10 @@ circle {
   cursor: pointer;
 }
 
+circle.fixed {
+  stroke: #f00;
+}
+
 .node-label {
   font-size: 8px;
   font-style: normal;

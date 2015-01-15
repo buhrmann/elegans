@@ -2,7 +2,7 @@
 var width = 1000;
 var height = 1000;
 var data;
-var force;
+var force, drag, zoom;
 var nodeColorScale;
 var nodeRadiusScale;
 var linkWeightScale;
@@ -13,7 +13,7 @@ var nodesConDim, edgesConDim;
 var nodes = [];
 var links = [];
 var linked = {};
-var node, link;
+var node, link, nodeLayer, linkLayer, container;
 var svg;
 var ndegVal = 2, 
     wminVal = 3;
@@ -40,8 +40,9 @@ graph = function(id, d) {
         .attr("viewBox", "0 0 " + width + " " + height)
         .attr("preserveAspectRatio", "xMidYMid meet");
 
-    var linkLayer = svg.append("g");
-    var nodeLayer = svg.append("g");
+    container = svg.append("g");
+    linkLayer = container.append("g");
+    nodeLayer = container.append("g");
 
     // Scales
     //nodeColorScale = d3.scale.category20();
@@ -65,6 +66,10 @@ graph = function(id, d) {
         .gravity(0.3)
         .size([width, height])
         .on("tick", tick);
+
+    drag = force.drag().on("dragstart", dragstarted);
+    zoom = d3.behavior.zoom().scaleExtent([0.75, 2]).on("zoom", zoomed); 
+    svg.call(zoom).on("dblclick.zoom", null);
 
     node = nodeLayer.selectAll(".node");
     link = linkLayer.selectAll(".link");  
@@ -204,10 +209,9 @@ function htmlForNode(d){
 }
 
 function htmlTabForNode(d){
-    var str = 
+    var str = '<p><span class="badge stats-item">' + d.type + '</span></p>' +
     '<ul class="list-group">' +
         '<li class="list-group-item"><span class="badge stats-item">' + d.group + '</span>Group</li>' +
-        '<li class="list-group-item"><span class="badge stats-item">' + d.type + '</span>Type</li>' +
         '<li class="list-group-item"><span class="badge stats-item">' + d.AYGanglionDesignation + '</span>Ganglion</li>' +
         '<li class="list-group-item"><span class="badge stats-item">' + d.inD + '</span>In Degree</li>' +
         '<li class="list-group-item"><span class="badge stats-item">' + d.outD + '</span>Out Degree</li>' +
@@ -278,9 +282,13 @@ update = function(n, l) {
         
     var nodeEnter = node.enter().append("g")
         .attr("class", "node")
-        .call(force.drag);
+        .call(drag)
         //.on('click', connectedNodes);
         //.on('dblclick', function(d) { window.open(d.link, "_blank");});
+        .on('dblclick', function(d) { 
+            d.fixed = false; 
+            d3.select(this).select("circle").classed("fixed", false);
+        });
 
     nodeEnter.append("circle")
         .attr("r", function(d) { return nodeRadiusScale(d.D); })
@@ -320,6 +328,16 @@ tick = function() {
     });
 }
 
+function dragstarted(d) {
+    d3.event.sourceEvent.stopPropagation();
+    d.fixed = true;
+    d3.select(this).select("circle").classed("fixed", true);
+}
+
+function zoomed() {
+  container.attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
+}
+
 collide = function(alpha) {
     var padding = 1;    
     
@@ -354,7 +372,7 @@ function connectedNodes(d, elem) {
     if (d != null && (highlight == 0 || highlightedId != d.id)) {
         //Reduce the opacity of all but the neighbouring nodes
         highlightedId = d.id;
-        d3.select(elem).select("circle").style("stroke", "#000");
+        //d3.select(elem).select("circle").style("stroke", "#000");
         node.style("opacity", function (o) {
             return neighboring(d, o) | neighboring(o, d) ? 1 : 0.1;
         });
@@ -367,7 +385,7 @@ function connectedNodes(d, elem) {
     } else {
         //Put them back to opacity=1
         node.style("opacity", 1);
-        node.select("circle").style("stroke", "#fff");
+        //node.select("circle").style("stroke", "#fff");
         link.style("opacity", 0.25);
         highlight = 0;
     }

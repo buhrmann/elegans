@@ -1,6 +1,7 @@
 body {
   background-color: #eee;
   margin: 0;  
+  font-size: 12px;
 }
 
 #graph {
@@ -13,9 +14,8 @@ body {
 }
 
 .uiwidget {        
-  display:block;
   width: 220px;
-  font-size: 12px;
+  /*font-size: 12px;*/
 }
 
 #menu-widget {
@@ -35,7 +35,15 @@ body {
 }
 
 input[type=range]{
-    width: 80%;
+  width: 80%;
+}
+
+label input[type=checkbox] {
+  margin-top: 2px;  /*Depends on font-size*/
+}
+
+output {
+  color: #428bca;
 }
 
 .formpanel {
@@ -48,6 +56,10 @@ input[type=range]{
 .link
 {
   stroke: #bbb;  
+}
+
+.link marker-mid {
+
 }
 
 .junction {

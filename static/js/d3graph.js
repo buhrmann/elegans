@@ -56,6 +56,22 @@ graph = function(id, d) {
     var weightDomain = d3.extent(data.synapses, function(s) { return s.weight; });
     linkWeightScale = d3.scale.linear().domain(weightDomain).range([1,5]);
 
+    // Build arrows
+    svg.append("svg:defs").selectAll("marker").data(colors)      // Different link/path types can be defined here
+      .enter().append("svg:marker")    // This section adds in the arrows
+        .attr("id", String)
+        .attr("viewBox", "0 -5 10 10")
+        .attr("refX", 0)
+        .attr("refY", -0)
+        .attr("markerWidth", 6)
+        .attr("markerHeight", 6)
+        .attr("markerUnits", "userSpaceOnUse")
+        .attr("orient", "auto")
+        .attr("style", function(d) { return "fill: " + d + "; visibility: hidden;"})
+            .append("svg:path")
+                .attr("d", "M0,-5L10,0L0,5");
+
+    // Create force layout
     force = d3.layout.force()
         .nodes(nodes)
         .links(links)
@@ -195,7 +211,7 @@ function filter(ndeg, wmin) {
     });
  
     document.getElementById('stats-n').innerHTML = n.length;
-    document.getElementById('stats-s').innerHTML = e.length;
+    document.getElementById('stats-s').innerHTML = e.length;    
 }
 
 
@@ -248,7 +264,7 @@ function removeNodeInfo() {
 function showNodeInfo(d) {
     var minStr = "<a href='"+ "javascript:removeNodeInfo()" + "'><span class='glyphicon glyphicon-resize-small pull-right'></span></a>"
     document.getElementById("nodeinfo").innerHTML = htmlTabForNode(d);
-    document.getElementById("node-heading").innerHTML = d.name + "<small>" + minStr + "</small>";
+    document.getElementById("node-heading").innerHTML = d.name + "<small>" + minStr + "</small>";    
 }
 
 
@@ -258,7 +274,6 @@ update = function(n, l) {
 
     var c = Math.min(-700 + wminVal * 100, -250);
     var ld = Math.max(180 - wminVal * 10, 40);
-    console.log(c, ld);
     force.nodes(nodes);
     force.links(links);
     force.charge(c);
@@ -268,12 +283,15 @@ update = function(n, l) {
     // Update links
     link = link.data(force.links(), function(d) { return d.id; });
 
-    link.enter().append("line")
+    //link.enter().append("line")
+    link.enter().append("polyline")
         .attr("class", "link")
         .classed("junction", function(d) { return (d.type == 'EJ' || d.type == 'NMJ')})
         .style("stroke-width", function(d) { return linkWeightScale(d.weight); })
         .style("stroke", function(d) { return nodeColorScale(d.source.type); })
-        .style("opacity", 0.25);
+        .style("opacity", 0.25)
+        //.attr("marker-mid", "url(#end)");
+        .attr("marker-mid", function(d) { return "url(#" + nodeColorScale(d.source.type) + ")" });
 
     link.exit().remove();
 
@@ -318,10 +336,14 @@ update = function(n, l) {
 
 tick = function() {
     force.on("tick", function() {
-        link.attr("x1", function(d) { return d.source.x; })
-            .attr("y1", function(d) { return d.source.y; })
-            .attr("x2", function(d) { return d.target.x; })
-            .attr("y2", function(d) { return d.target.y; });
+        // link.attr("x1", function(d) { return d.source.x; })
+        //     .attr("y1", function(d) { return d.source.y; })
+        //     .attr("x2", function(d) { return d.target.x; })
+        //     .attr("y2", function(d) { return d.target.y; });
+        link.attr("points", function(d) {
+            return d.source.x + "," + d.source.y + " " + 
+             (d.source.x + d.target.x)/2 + "," + (d.source.y + d.target.y)/2 + " " +
+             d.target.x + "," + d.target.y; });
 
         node.attr("transform", function (d) { return "translate(" + d.x + "," + d.y + ")"; });
         node.each(collide(0.2));
@@ -392,6 +414,11 @@ function connectedNodes(d, elem) {
     d3.event.stopPropagation();
 }
 
+function toggleArrows(checkbox) {
+    o = checkbox.checked ? "visible" : "hidden";
+    svg.selectAll("marker").attr("style", function(d) { return "fill: " + d + "; visibility:" + o +";"});
+}
+
 
 function searchNode() {
     var selectedVal = document.getElementById('group1').value;
@@ -423,8 +450,13 @@ function subGraph() {
         maxLength: l,
         dir: dir
       }, function(d) {
-        //console.log(d.result);
         data = d.result;
+        $('#wminslider').val(0);
+        $('#ndegslider').val(0);
+        wminVal = 0;
+        ndegVal = 0;
+        document.querySelector('#wminlabel').value = 0;
+        document.querySelector('#ndeglabel').value = 0;
         updateCrossFilter(data['neurons'], data['synapses']);        
       });
       return false;

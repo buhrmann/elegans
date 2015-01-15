@@ -10,7 +10,7 @@
           <h3>Subgraph</h3>
           Choose two neuron groups to see the subgraph connecting them (given minimum connection weight and path length).
           <p><div class="input-group input-group-sm">
-            <input id="group1" type="search" placeholder="Group" value="AVA" size="4" maxlength="4" class="form-control"/>
+            <input id="group1" type="search" placeholder="Group" value="ASE" size="4" maxlength="4" class="form-control"/>
             <div class="input-group-btn">
              <button type="button" id="dirButton" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-expanded="false">-></button>
               <ul class="dropdown-menu" role="menu">
@@ -18,15 +18,17 @@
                 <li><a href="#">-</a></li>
               </ul>
             </div>
-            <input id="group2" type="search" placeholder="Group" value="ADA" size="4" maxlength="4" class="form-control"/>
+            <input id="group2" type="search" placeholder="Group" value="SMB" size="4" maxlength="4" class="form-control"/>
           </div></p>
         
-          <p><label for="subwslider">Min weight [1-10]</label>
-          <input type="range" id="subwslider" name="subw" value="1" min="1" max="10" oninput="document.getElementById('subwlabel').value = value;">
-          <output for="subwSlider" id="subwlabel">1</output></p>
-          <p><label for="subpslider">Max path length [1-4]</label>
-          <input type="range" id="subpslider" name="subp" value="1" min="1" max="4" oninput="document.getElementById('subplabel').value = value;">
-          <output for="subpSlider" id="subplabel">1</output></p>
+          <div class="form-group">
+            <label for="subwslider">Min weight [1-10]: </label> <output for="subwSlider" id="subwlabel">1</output>
+            <input type="range" id="subwslider" name="subw" value="1" min="1" max="10" oninput="document.getElementById('subwlabel').value = value;">            
+          </div>
+          <div class="form-group">
+            <label for="subpslider">Max path length [1-4]: </label> <output for="subpSlider" id="subplabel">3</output>
+            <input type="range" id="subpslider" name="subp" value="3" min="1" max="4" oninput="document.getElementById('subplabel').value = value;">            
+          </div>
           <button class="btn btn-default" type="button" onclick="subGraph();">Fetch!</button>
           <button class="btn btn-default" type="button" onclick="graphReset();">Reset</button>
         </div>
@@ -38,12 +40,17 @@
             <button id="prune1" type="button" data-toggle="button" name="option" value="1" class="btn btn-default active">Prune</button>
             <button id="prune2" type="button" data-toggle="button" name="option" value="2" class="btn btn-default">Hide</button>
           </div></p>
-          <p><label for="ndegslider">Node degree [0-200]</label>
-          <input type="range" id="ndegslider" name="ndeg" value="2" min="0" max="200" oninput="filterNDeg(value)">
-          <output for="thresholdSlider" id="ndeglabel">2</output></p>
-          <p><label for="wminslider">Min weight [0-40]</label>
-          <input type="range" id="wminslider" name="wmin" value="3" min="0" max="40" oninput="filterWMin(value)">
-          <output for="wminslider" id="wminlabel">3</output></p>      
+          <div class="form-group">
+            <label for="ndegslider">Node degree [0-200]:</label> <output for="thresholdSlider" id="ndeglabel">2</output>
+            <input type="range" id="ndegslider" name="ndeg" value="2" min="0" max="200" oninput="filterNDeg(value)">            
+          </div>
+          <div class="form-group">
+            <label for="wminslider">Min weight [0-40]:</label> <output for="wminslider" id="wminlabel">3</output>
+            <input type="range" id="wminslider" name="wmin" value="3" min="0" max="40" oninput="filterWMin(value)">            
+          </div>
+          <div class="checkbox">
+            <label><input type="checkbox" onchange="toggleArrows(this)">Arrows</label>
+          </div>
         </div>
       </form>
 

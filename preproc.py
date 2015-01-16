@@ -25,6 +25,12 @@ def zeroLead(x):
     else:
         return x
 
+def removeLeadingZero(x):
+    if x[-1].isdigit() and x[-2] == '0':
+        return x[0:-2] + x[-1]
+    else:
+        return x        
+
 
 # For symmetric nodes ending in L or R, returns the counterpart
 def symNodeName(name):
@@ -40,11 +46,11 @@ def symNodeName(name):
 # Expands se->sensory neuron, mo->motor neuron, in->interneuron, mu->muscle, bm->basement membrane, 
 # gln->gland cell, mc->marginal cell
 def expandTypeAbbr(name):
-    sep = ","
+    sep = ", "
     types = []
-    if not name.find("se") == -1: types.append("sensory neuron")
-    if not name.find("mo") == -1: types.append("motor neuron")
-    if not name.find("in") == -1: types.append("interneuron")
+    if not name.find("se") == -1: types.append("sensory")
+    if not name.find("mo") == -1: types.append("motor")
+    if not name.find("in") == -1: types.append("inter")
     if not name.find("mu") == -1: types.append("muscle")
     if not name.find("bm") == -1: types.append("basement membrane")
     if not name.find("gln") == -1: types.append("gland cell")
@@ -154,7 +160,7 @@ def neuronsDf():
 # and once as "receive" by n2 from n1. Here we only keep the "send" copy.
 def connsDf():
     df = pd.io.excel.read_excel(data_folder + chen_conns_fnm, sheetname=0, index_col=None, header=0)
-    df = df[(df['Type'] != 'R') & (df['Type'] != 'Rp')]
+    df = df[(df['Type'] != 'R') & (df['Type'] != 'Rp') & (df['Type'] != 'NMJ')]
     return df
 
 

@@ -26,18 +26,18 @@ def graphR():
         return GraphDatabase(url_without_auth, username = url.username, password = url.password)
         
 g = graphR()
-
+pg = graph()
 
 # Imports neurons from source files
 # TODO: store preprocessed data locally as csv, then import without need to recreate each time
 # nor for using pandas etc.
 def addNeurons(clear):
     if clear: 
-        g.delete_all()
+        pg.delete_all()
 
     neurons = preproc.neuronsDf()
 
-    tx = g.cypher.begin()
+    tx = pg.cypher.begin()
     statement = "CREATE (n:Neuron {props})"    
     for name, params in neurons.iterrows():        
         params = params.to_dict()
@@ -45,35 +45,31 @@ def addNeurons(clear):
         tx.append(statement, {"props":params})
     tx.commit()
 
-    return g
-
 
 # Add synapses
 # TODO: store preprocessed data locally as csv, then import without need to recreate each time
 # nor for using pandas etc.
 def addSynapses(clear):
     if clear:
-        g.delete_all()
+        pg.delete_all()
 
     conns = preproc.connsDf()
 
-    tx = g.cypher.begin()
+    tx = pg.cypher.begin()
     statement = "MATCH (n1:Neuron {name:{nm1}}), (n2:Neuron {name:{nm2}}) CREATE (n1)-[s:Synapse {name:n1.name+'->'+n2.name, type:{tp}, weight:{w}}]->(n2)" 
-    for ix, r in conns.iterrows():        
+    for ix, r in conns.iterrows():
         tx.append(statement, {"nm1":r['Neuron 1'], "nm2":r['Neuron 2'], "tp":r["Type"], "w":r["Nbr"]})
     tx.commit()
+    setNodeDegrees()
 
-    return g
 
-
-def addNodeDegrees():
+def setNodeDegrees():
     sIn = "MATCH (n) OPTIONAL MATCH (n)<-[r]-(m) WITH n as n, COUNT(r) as inD SET n.inD=inD"
     sOut = "MATCH (n) OPTIONAL MATCH (n)-[r]->(m) WITH n as n, COUNT(r) as outD SET n.outD=outD"
     total = "MATCH (n) SET n.D = (n.inD + n.outD)"
-    graph = graphR()    
-    graph.query(sIn)
-    graph.query(sOut)
-    graph.query(total)
+    g.query(sIn)
+    g.query(sOut)
+    g.query(total)
     
 
 # Get all neurons as list

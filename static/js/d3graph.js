@@ -26,14 +26,8 @@ var highlightId = -1;
 graph = function(id, d) {
 
     data = d;
-    var n = data.neurons.length;
-    n = Math.floor(Math.sqrt(n))
-    var s = width / (n+2);
-    data.neurons.forEach(function(d, i) { 
-        d.x = (i / n) * s;
-        d.y = (i % n) * s;
-        //d.fixed = true;
-    });
+
+    initNodePos(data.neurons);
     
     // Containers
     svg = d3.select(id).append("svg")
@@ -51,7 +45,7 @@ graph = function(id, d) {
     //nodeColorScale = d3.scale.ordinal().range(colorbrewer["Accent"][6].reverse());
     
     var degreeDomain = d3.extent(data.neurons, function(n) { return n.D; });
-    nodeRadiusScale = d3.scale.linear().domain(degreeDomain).range([5,30]);
+    nodeRadiusScale = d3.scale.linear().domain(degreeDomain).range([10,30]);
 
     var weightDomain = d3.extent(data.synapses, function(s) { return s.weight; });
     linkWeightScale = d3.scale.linear().domain(weightDomain).range([1,5]);
@@ -287,7 +281,7 @@ update = function(n, l) {
     link.enter().append("polyline")
         .attr("class", "link")
         .classed("junction", function(d) { return (d.type == 'EJ' || d.type == 'NMJ')})
-        .style("stroke-width", function(d) { return linkWeightScale(d.weight); })
+        .style("stroke-width", function(d) { return linkWeightScale(d.weight) * (d.type == 'EJ' ? 2 : 1); })
         .style("stroke", function(d) { return nodeColorScale(d.source.type); })
         .style("opacity", 0.25)
         //.attr("marker-mid", "url(#end)");
@@ -335,11 +329,28 @@ update = function(n, l) {
 
 
 tick = function() {
-    force.on("tick", function() {
+    force.on("tick", function(e) {
+        
+
+        var k = 75 * e.alpha;
+        nodes.forEach(function(n, i) {
+            if (n.type.indexOf("sensory") > -1)// && n.y > 400) 
+                n.y -= k;
+            else if (n.type.indexOf("motor") > -1)// && n.y < 600) 
+                n.y += k;
+            if (n.name.slice(-1) == "L")// && n.x > 400)
+                n.x -= k
+            else if (n.name.slice(-1) == "R")// && n.x < 600)
+                n.x += k;
+        });
+
+        // Simple line
         // link.attr("x1", function(d) { return d.source.x; })
         //     .attr("y1", function(d) { return d.source.y; })
         //     .attr("x2", function(d) { return d.target.x; })
         //     .attr("y2", function(d) { return d.target.y; });
+
+        // Polyline
         link.attr("points", function(d) {
             return d.source.x + "," + d.source.y + " " + 
              (d.source.x + d.target.x)/2 + "," + (d.source.y + d.target.y)/2 + " " +
@@ -427,10 +438,26 @@ function searchNode() {
     connectedNodes(sel.data()[0]);
 }
 
+function initNodePos(neurons) {
+    neurons.forEach(function(d, i) { 
+        if (d.type.indexOf("sensory") > -1)
+            d.y = 100;
+        else if (d.type.indexOf("motor") > -1)
+            d.y = 900;
+        if (d.name.slice(-1) == "L")
+            d.x = 100;
+        else if (d.name.slice(-1) == "R")
+            d.x = 900;
+
+        //d.fixed = true;        
+    });
+}
+
 
 function graphReset() {
     $.getJSON($SCRIPT_ROOT + '/_reset', function(d) {
         data = d.result;
+        initNodePos(data.neurons);
         $('#wminslider').val(3);
         $('#ndegslider').val(1);
         wminVal = 3;

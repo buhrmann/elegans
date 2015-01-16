@@ -205,7 +205,8 @@ function filter(ndeg, wmin) {
     });
  
     document.getElementById('stats-n').innerHTML = n.length;
-    document.getElementById('stats-s').innerHTML = e.length;    
+    document.getElementById('stats-s').innerHTML = d3.sum(e, function(d) { return d.type!="EJ" ? 1 : 0 });
+    document.getElementById('stats-ej').innerHTML = d3.sum(e, function(d) { return d.type=="EJ" ? 1 : 0 });
 }
 
 
@@ -256,9 +257,8 @@ function removeNodeInfo() {
 }
 
 function showNodeInfo(d) {
-    var minStr = "<a href='"+ "javascript:removeNodeInfo()" + "'><span class='glyphicon glyphicon-resize-small pull-right'></span></a>"
     document.getElementById("nodeinfo").innerHTML = htmlTabForNode(d);
-    document.getElementById("node-heading").innerHTML = d.name + "<small>" + minStr + "</small>";    
+    document.getElementById("node-heading").innerHTML = d.name;
 }
 
 
@@ -459,12 +459,15 @@ function initNodePos(neurons) {
         else if (d.name.slice(-1) == "R")
             d.x = 600;
 
+        // Fix AVAL and AVAR to the middle
+        //if (d.name="AVAL")
         //d.fixed = true;        
     });
 }
 
 
 function graphReset() {
+    document.getElementById("resetbutton").innerHTML = '<img id="ajaxloader" src="/static/images/ajax-loader.gif">'
     $.getJSON($SCRIPT_ROOT + '/_reset', function(d) {
         data = d.result;
         initNodePos(data.neurons);
@@ -474,7 +477,8 @@ function graphReset() {
         ndegVal = 1;
         document.querySelector('#wminlabel').value = 3;
         document.querySelector('#ndeglabel').value = 1;
-        updateCrossFilter(data['neurons'], data['synapses']);        
+        updateCrossFilter(data['neurons'], data['synapses']);
+        document.getElementById("resetbutton").innerHTML = "Reset"
       });
     return false;
 }
@@ -486,6 +490,7 @@ function subGraph() {
     var w = document.getElementById('subwslider').value;
     var l = document.getElementById('subpslider').value;
     var dir = $('#dirButton').text();
+    document.getElementById("fetchbutton").innerHTML = '<img id="ajaxloader" src="/static/images/ajax-loader.gif">'
     $.getJSON($SCRIPT_ROOT + '/_subgraph', {
         group1: g1,
         group2: g2,
@@ -500,7 +505,8 @@ function subGraph() {
         ndegVal = 0;
         document.querySelector('#wminlabel').value = 0;
         document.querySelector('#ndeglabel').value = 0;
-        updateCrossFilter(data['neurons'], data['synapses']);        
+        updateCrossFilter(data['neurons'], data['synapses']);
+        document.getElementById("fetchbutton").innerHTML = "Fetch!"
       });
       return false;
 }

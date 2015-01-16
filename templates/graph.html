@@ -7,19 +7,26 @@
      <div class="uiwidget" id="menu-widget">
       <form>        
         <div class="formpanel">
-          <h3>Subgraph</h3>
+          <h3>Subgraph 
+            <small><a href="#subpanel" data-toggle="collapse" aria-expanded="true" aria-controls="subpanel">
+              <span class='glyphicon glyphicon-resize-small pull-right'></span>
+            </a></small>
+          </h3>
+          <div id="subpanel" class="panel-collapse collapse in">
           Choose two neuron groups to see the subgraph connecting them (given minimum connection weight and path length).
-          <p><div class="input-group input-group-sm">
-            <input id="group1" type="search" placeholder="Group" value="ASE" size="4" maxlength="4" class="form-control"/>
-            <div class="input-group-btn">
-             <button type="button" id="dirButton" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-expanded="false">-></button>
-              <ul class="dropdown-menu" role="menu">
-                <li><a href="#">-></a></li>
-                <li><a href="#">-</a></li>
-              </ul>
+          <p>
+            <div class="input-group input-group-sm">
+              <input id="group1" type="search" placeholder="Group" value="ASE" size="4" maxlength="4" class="form-control"/>
+              <div class="input-group-btn">
+                <button type="button" id="dirButton" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-expanded="false">-></button>
+                <ul class="dropdown-menu" role="menu">
+                  <li><a href="#">-></a></li>
+                  <li><a href="#">-</a></li>
+                </ul>
+              </div>
+              <input id="group2" type="search" placeholder="Group" value="SMB" size="4" maxlength="4" class="form-control"/>
             </div>
-            <input id="group2" type="search" placeholder="Group" value="SMB" size="4" maxlength="4" class="form-control"/>
-          </div></p>
+          </p>
         
           <div class="form-group">
             <label for="subwslider">Min weight [1-10]: </label> <output for="subwSlider" id="subwlabel">1</output>
@@ -29,12 +36,18 @@
             <label for="subpslider">Max path length [1-4]: </label> <output for="subpSlider" id="subplabel">3</output>
             <input type="range" id="subpslider" name="subp" value="3" min="1" max="4" oninput="document.getElementById('subplabel').value = value;">            
           </div>
-          <button class="btn btn-default" type="button" onclick="subGraph();">Fetch!</button>
-          <button class="btn btn-default" type="button" onclick="graphReset();">Reset</button>
+          <button id="fetchbutton" class="btn btn-default" type="button" onclick="subGraph()">Fetch!</button>
+          <button id="resetbutton" class="btn btn-default pull-right" type="button" onclick="graphReset();">Reset</button>
+        </div>
         </div>
 
         <div class="formpanel">
-          <h3>Visibility</h3>
+          <h3>Visibility
+            <small><a href="#vispanel" data-toggle="collapse" aria-expanded="true" aria-controls="vispanel">
+              <span class='glyphicon glyphicon-resize-small pull-right'></span>
+            </a></small>
+          </h3>
+          <div id="vispanel" class="panel-collapse collapse in">
           Toggle visibility of neurons and synapses.
           <p><div class="btn-group btn-group-sm" id="prune-radio" data-toggle="buttons-radio">
             <button id="prune1" type="button" data-toggle="button" name="option" value="1" class="btn btn-default active">Prune</button>
@@ -58,21 +71,35 @@
             <label><input type="checkbox" onchange="toggleArrows(this)">Arrows</label>
           </div>
         </div>
+        </div>
       </form>
 
       <div class="formpanel">
-        <h3>Statistics</h3>
+        <h3>Statistics
+          <small><a href="#statpanel" data-toggle="collapse" aria-expanded="true" aria-controls="statpanel">
+          <span class='glyphicon glyphicon-resize-small pull-right'></span>
+          </a></small>
+        </h3>
+        <div id="statpanel" class="panel-collapse collapse in">
         <ul class="list-group">
           <li class="list-group-item"><span class="badge stats-item" id="stats-n">14</span>Neurons</li>
-          <li class="list-group-item"><span class="badge stats-item" id="stats-s">7</span>Synapses</li>
+          <li class="list-group-item"><span class="badge stats-item" id="stats-s">7</span>Chemical synapses</li>
+          <li class="list-group-item"><span class="badge stats-item" id="stats-ej">7</span>Electrical junctions</li>
         </ul>
       </div>
+    </div>
     </div>
 
     <div class="uiwidget" id="node-widget">
       <div class="formpanel">
-        <h3 id="node-heading">Node Info</h3>
+        <h3><span id="node-heading">Node Info</span>
+          <small><a href="#nodepanel" data-toggle="collapse" aria-expanded="true" aria-controls="nodepanel">
+          <span class='glyphicon glyphicon-resize-small pull-right'></span>
+          </a></small>
+        </h3>
+        <div id="nodepanel" class="panel-collapse collapse in">
         <span id="nodeinfo"></span>
+      </div>
       </div>
     </div>
   {% endif %}
@@ -82,31 +109,36 @@
 {{ super() }} 
 	<script type="text/javascript" src={{url_for('static', filename='js/d3.v3.min.js')}}></script>
   <script type="text/javascript" src={{url_for('static', filename='js/crossfilter.min.js')}}></script>  
-  <script type="text/javascript" src={{url_for('static', filename='js/colorbrewer.v1.min.js')}}></script>  
+  <!--<script type="text/javascript" src={{url_for('static', filename='js/colorbrewer.v1.min.js')}}></script>  -->
   <script>
   $(function() {
     $('#prune-radio button').click(function() {
-      $(this).addClass('active').siblings().removeClass('active'); });
+      $(this).addClass('active').siblings().removeClass('active'); 
+    });
     
     $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
-
 
     $(".dropdown-menu li a").click(function(){
       $(this).parents(".input-group-btn").find('.btn').text($(this).text());
       $(this).parents(".input-group-btn").find('.btn').val($(this).text());
     });
   });
+
+  $(".btn").mouseup(function(){
+    $(this).blur();
+  });
+  
   </script>
+
   <script type="text/javascript" src={{url_for('static', filename='js/d3graph.js')}}></script>    
   <script type="text/javascript">graph("#graph", {{data|safe}});</script>
+
   <script>
   (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
   (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
   m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
   })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
-
   ga('create', 'UA-58616029-1', 'auto');
   ga('send', 'pageview');
-
-</script>
+  </script>
 {% endblock %}

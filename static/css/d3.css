@@ -53,6 +53,10 @@ output {
   border-radius: 10px;
 }
 
+#fetchbutton, #resetbutton {
+  width: 75px;
+}
+
 .link
 {
   stroke: #bbb;  

@@ -126,7 +126,9 @@ def synapsesSigma(neurons, minWeight=0):
 
 # d3 compatible format
 def synapsesD3(neurons, minWeight=1):
-    q = "MATCH (n1:Neuron)-[s:Synapse]->(n2:Neuron) return {from:id(n1), to:id(n2), type:s.type, weight:s.weight, id:id(s)}"
+    #q = "MATCH (n1:Neuron)-[s:Synapse]->(n2:Neuron) return {from:id(n1), to:id(n2), type:s.type, weight:s.weight, id:id(s)}"
+    # For EJs we only need to show one direction
+    q = "MATCH (n1:Neuron)-[s:Synapse]->(n2:Neuron) WHERE s.type<>'EJ' OR (s.type='EJ' AND id(n1)<id(n2)) RETURN {from:id(n1), to:id(n2), type:s.type, weight:s.weight, id:id(s)}"
     graph = graphR()
     res = graph.query(q)
     synapses = []

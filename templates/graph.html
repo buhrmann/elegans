@@ -49,6 +49,12 @@
             <input type="range" id="wminslider" name="wmin" value="3" min="0" max="40" oninput="filterWMin(value)">            
           </div>
           <div class="checkbox">
+            <label><input type="checkbox" onchange="toggleSynapses(this)" checked>Chemical synapses</label>
+          </div>
+          <div class="checkbox">
+            <label><input type="checkbox" onchange="toggleJunctions(this)" checked>Electrical junctions</label>
+          </div>
+          <div class="checkbox">
             <label><input type="checkbox" onchange="toggleArrows(this)">Arrows</label>
           </div>
         </div>

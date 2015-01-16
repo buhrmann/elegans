@@ -45,7 +45,7 @@ graph = function(id, d) {
     //nodeColorScale = d3.scale.ordinal().range(colorbrewer["Accent"][6].reverse());
     
     var degreeDomain = d3.extent(data.neurons, function(n) { return n.D; });
-    nodeRadiusScale = d3.scale.linear().domain(degreeDomain).range([10,30]);
+    nodeRadiusScale = d3.scale.linear().domain(degreeDomain).range([10,25]);
 
     var weightDomain = d3.extent(data.synapses, function(s) { return s.weight; });
     linkWeightScale = d3.scale.linear().domain(weightDomain).range([1,5]);
@@ -267,7 +267,7 @@ update = function(n, l) {
     links = l;
 
     var c = Math.min(-700 + wminVal * 100, -250);
-    var ld = Math.max(180 - wminVal * 10, 40);
+    var ld = Math.max(120 - wminVal * 10, 40);
     force.nodes(nodes);
     force.links(links);
     force.charge(c);
@@ -283,8 +283,9 @@ update = function(n, l) {
         .classed("junction", function(d) { return (d.type == 'EJ' || d.type == 'NMJ')})
         .style("stroke-width", function(d) { return linkWeightScale(d.weight) * (d.type == 'EJ' ? 2 : 1); })
         .style("stroke", function(d) { return nodeColorScale(d.source.type); })
-        .style("opacity", 0.25)
-        //.attr("marker-mid", "url(#end)");
+        .style("opacity", 0.25);
+
+    link.filter(function(d) { return d.type != "EJ"})
         .attr("marker-mid", function(d) { return "url(#" + nodeColorScale(d.source.type) + ")" });
 
     link.exit().remove();
@@ -425,6 +426,15 @@ function connectedNodes(d, elem) {
     d3.event.stopPropagation();
 }
 
+
+function toggleSynapses(checkbox) {
+    link.filter(function(d) { return d.type!="EJ"}).classed("hidden", !checkbox.checked);
+}
+
+function toggleJunctions(checkbox) {
+    link.filter(function(d) { return d.type=="EJ"}).classed("hidden", !checkbox.checked);   
+}
+
 function toggleArrows(checkbox) {
     o = checkbox.checked ? "visible" : "hidden";
     svg.selectAll("marker").attr("style", function(d) { return "fill: " + d + "; visibility:" + o +";"});
@@ -441,13 +451,13 @@ function searchNode() {
 function initNodePos(neurons) {
     neurons.forEach(function(d, i) { 
         if (d.type.indexOf("sensory") > -1)
-            d.y = 100;
+            d.y = 0;
         else if (d.type.indexOf("motor") > -1)
-            d.y = 900;
+            d.y = 600;
         if (d.name.slice(-1) == "L")
-            d.x = 100;
+            d.x = 200;
         else if (d.name.slice(-1) == "R")
-            d.x = 900;
+            d.x = 600;
 
         //d.fixed = true;        
     });

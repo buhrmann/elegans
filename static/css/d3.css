@@ -67,6 +67,10 @@ output {
   stroke: #000;
 }
 
+.link.hidden {
+  display: none;
+}
+
 circle {
   stroke-width: 1px;
   stroke: #fff;

@@ -39,7 +39,9 @@ def index():
 @app.route('/_subgraph')
 def subgraph():
     g1 = request.args.get('group1', "no group1", type=str)
+    g1 = [s.strip() for s in g1.split(",")]
     g2 = request.args.get('group2', "no group2", type=str)
+    g2 = [s.strip() for s in g2.split(",")]
     w = request.args.get('minWeight', 1, type=int)
     l = request.args.get('maxLength', 2, type=int)
     dir = request.args.get('dir', '->', type=str)

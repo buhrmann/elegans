@@ -144,8 +144,10 @@ def synapsesD3(neurons, minWeight=1):
 # Returns subgraph connecting neurons in group1 with neurons in group2
 def subgraph(g1, g2, l=2, w=2, dir='->'):
 
-    q = ("MATCH (n1:Neuron) WHERE n1.group={g1} "
-         "MATCH (n2:Neuron) WHERE n2.group={g2} ")
+    # q = ("MATCH (n1:Neuron) WHERE n1.group={g1} "
+    #      "MATCH (n2:Neuron) WHERE n2.group={g2} ")
+    q = ("MATCH (n1:Neuron) WHERE n1.group IN {g1} "
+         "MATCH (n2:Neuron) WHERE n2.group IN {g2} ")
     q += "MATCH p=(n1)-[r*1.." + str(l) + "]" + dir + "(n2) "
     q += "WHERE ALL(c IN r WHERE c.weight >= {w}) "
     q += ("AND ALL(n in NODES(p) WHERE 1=length(filter(m in NODES(p) WHERE m=n))) "

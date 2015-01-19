@@ -16,7 +16,7 @@ kaiser_pos_lab_fnm = "DynamicConnectome/celegans277/celegans277labels.csv"
 ow_neurons_fnm = ""
 ww_neurons_fnm = "WormWeb/name_neurons.txt"
 
-neuron_attrs = ["SomaPosition", "SomaRegion", "AYGanglionDesignation", "AYNbr"]
+neuron_attrs = ["Neuron", "SomaPosition", "SomaRegion", "AYGanglionDesignation", "AYNbr"]
 
 # Adds leading zero to single digits at the end of a string
 def zeroLead(x):
@@ -64,16 +64,18 @@ def kaiserPositionDf():
     positions = pd.io.parsers.read_csv(data_folder + kaiser_pos_fnm, header=None)
     df = pd.concat([pos_labels, positions], axis=1, ignore_index=True)
     df.columns = ["label", "kx", "ky"]
-    df["label"] = [zeroLead(x) for x in df["label"]]
+    #   df["label"] = [zeroLead(x) for x in df["label"]]
     df = df.set_index("label")
     return df
 
 
 # Returns a pandas DF indexed by neuron label
 def chenNeuronDf():
-    df = pd.io.excel.read_excel(data_folder + chen_neurons_fnm, sheetname=0, index_col=0, header=0)     
+    df = pd.io.excel.read_excel(data_folder + chen_neurons_fnm, sheetname=0, index_col=None, header=0)     
     df.columns = [x.replace(" ", "") for x in df.columns]
     df = df[neuron_attrs]
+    df["Neuron"] = [removeLeadingZero(x) for x in df["Neuron"]]
+    df.set_index("Neuron", drop=True, inplace=True)
     return df
 
 
@@ -82,7 +84,7 @@ def wwNeuronDf():
     df = pd.io.parsers.read_csv(data_folder + ww_neurons_fnm, comment="#", 
         header=None, index_col=0, sep=" ", skipinitialspace=True, names=["name", "group", "type"])
     df["type"] = [expandTypeAbbr(x) for x in df["type"]]
-    df.index = [zeroLead(x) for x in df.index]
+    #df.index = [zeroLead(x) for x in df.index]
     return df
 
 
@@ -109,7 +111,7 @@ def waLinksDf():
     df = pd.DataFrame()
     df['link'] = hrefs    
     df.index = names
-    df.index = [zeroLead(x) for x in df.index]
+    #df.index = [zeroLead(x) for x in df.index]
 
     nans = df.index[df['link'].isnull()]
     if len(nans) > 0:
@@ -160,6 +162,9 @@ def neuronsDf():
 # and once as "receive" by n2 from n1. Here we only keep the "send" copy.
 def connsDf():
     df = pd.io.excel.read_excel(data_folder + chen_conns_fnm, sheetname=0, index_col=None, header=0)
+    df.columns = [x.replace(" ", "") for x in df.columns]
+    df["Neuron1"] = [removeLeadingZero(x) for x in df["Neuron1"]]
+    df["Neuron2"] = [removeLeadingZero(x) for x in df["Neuron2"]]
     df = df[(df['Type'] != 'R') & (df['Type'] != 'Rp') & (df['Type'] != 'NMJ')]
     return df
 

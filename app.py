@@ -11,18 +11,11 @@ PASSWORD = 'inform'
 app = Flask(__name__)
 app.config.from_object(__name__)
 
-@app.route('/info')
-def info():
-    o = neo.g.order
-    s = neo.g.size
-    print o, s
-    return 'Graph has ' + str(o) + ' neurons and ' + str(s) +  ' synapses.' 
 
 @app.route('/build')
 def build():
-    neo.addNeurons(True)
-    neo.addSynapses(False)
-    neo.addNodeDegrees()
+    neo.dbAddNeurons(True)
+    neo.dbAddSynapses(False)
     return redirect(url_for('index'))
 
 
@@ -82,11 +75,13 @@ def login():
     flash(error)
     return redirect(url_for('show_runs'))
 
+
 @app.route('/logout')
 def logout():
     session.pop('logged_in', None)
     flash('You were logged out')
     return redirect(url_for('show_runs'))
+
 
 # Autostart
 # ------------------------------------------------------------------------------

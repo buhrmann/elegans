@@ -58,8 +58,12 @@
             <input type="range" id="ndegslider" name="ndeg" value="2" min="0" max="200" oninput="filterNDeg(value)">            
           </div>
           <div class="form-group">
-            <label for="wminslider">Min weight [0-40]:</label> <output for="wminslider" id="wminlabel">3</output>
+            <label for="wminslider">Synapse min weight [0-40]:</label> <output for="wminslider" id="wminlabel">3</output>
             <input type="range" id="wminslider" name="wmin" value="3" min="0" max="40" oninput="filterWMin(value)">            
+          </div>
+          <div class="form-group">
+            <label for="jminslider">Junction min weight [0-25]:</label> <output for="jminslider" id="jminlabel">2</output>
+            <input type="range" id="jminslider" name="jmin" value="2" min="0" max="25" oninput="filterJMin(value)">            
           </div>
           <div class="checkbox">
             <label><input type="checkbox" onchange="toggleSynapses(this)" checked>Chemical synapses</label>

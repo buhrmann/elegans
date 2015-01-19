@@ -57,13 +57,12 @@ output {
   width: 75px;
 }
 
-.link
-{
-  stroke: #bbb;  
+svg {
+  cursor: move;
 }
 
-.link marker-mid {
-
+.link {
+  stroke: #bbb;  
 }
 
 .junction {

@@ -8,7 +8,7 @@ var nodeRadiusScale;
 var linkWeightScale;
 var nfilter = crossfilter(), 
     efilter = crossfilter();
-var nodesDegDim, edgesWeightDim;
+var nodesDegDim, edgesWeightDim, junctionsWeightDim;
 var nodesConDim, edgesConDim;
 var nodes = [];
 var links = [];
@@ -16,9 +16,13 @@ var linked = {};
 var node, link, nodeLayer, linkLayer, container;
 var svg;
 var ndegVal = 2, 
-    wminVal = 3;
+    wminVal = 3,
+    jminVal = 2;
 var highlight = 0;
 var highlightId = -1;
+var showArrow = 0,
+    showJunctions = 1,
+    showSynapses = 1;
 
 //-------------------------------------------------------------------
 // Grap with d3
@@ -34,7 +38,7 @@ graph = function(id, d) {
         .attr("viewBox", "0 0 " + width + " " + height)
         .attr("preserveAspectRatio", "xMidYMid meet");
 
-    container = svg.append("g");
+    container = svg.append("g").attr("style", "cursor:move");
     linkLayer = container.append("g");
     nodeLayer = container.append("g");
 
@@ -95,7 +99,8 @@ graph = function(id, d) {
     nfilter.add(data['neurons']);
     efilter.add(data['synapses']);
     nodesDegDim = nfilter.dimension(function(d) { return d.D; });
-    edgesWeightDim = efilter.dimension(function(d) { return d.weight; });
+    edgesWeightDim = efilter.dimension(function(d) { return d.type != "EJ" ? d.weight : 6666; });
+    junctionsWeightDim = efilter.dimension(function(d) { return d.type == "EJ" ? d.weight : 6666; });
 
     //Search    
     var optArray = d3.set(data.neurons.map(function(d) { return d.group;} ).sort()).values();
@@ -105,8 +110,7 @@ graph = function(id, d) {
     });
 
     update(data.neurons, data.synapses);
-
-    filter(ndegVal, wminVal);
+    filter(ndegVal, wminVal, jminVal);    
 
     buildAdjacency();
 }
@@ -114,13 +118,14 @@ graph = function(id, d) {
 function updateCrossFilter(n, s) {
     nodesDegDim.filter(null);
     edgesWeightDim.filter(null);
+    junctionsWeightDim.filter(null);
     nfilter.remove();
     efilter.remove();
     nfilter.add(n);
     efilter.add(s);    
 
     update(n, s);
-    filter(ndegVal, wminVal);
+    filter(ndegVal, wminVal, jminVal);
 }
 
 
@@ -137,30 +142,37 @@ function neighboring(a, b) {
 function filterNDeg(ndeg) {
     ndegVal = ndeg;
     document.querySelector('#ndeglabel').value = ndeg;
-    filter(ndegVal, wminVal);
+    filter(ndegVal, wminVal, jminVal);
 }
 
 function filterWMin(wmin) {
     wminVal = wmin;
     document.querySelector('#wminlabel').value = wmin;
-    filter(ndegVal, wminVal);
+    filter(ndegVal, wminVal, jminVal);
 }
 
-function filter(ndeg, wmin) {
+function filterJMin(jmin) {
+    jminVal = jmin;
+    document.querySelector('#jminlabel').value = jmin;
+    filter(ndegVal, wminVal, jminVal);
+}
+
+function filter(ndeg, wmin, jmin) {
 
     var prune = d3.select("#prune1").classed("active");
 
     if (typeof ndeg == 'undefined') ndeg = ndegVal; //$( "#nsl_slider" ).slider( "value" );
     if (typeof wmin == 'undefined') wmin = wminVal; //$( "#w_slider" ).slider( "value" );
+    if (typeof jmin == 'undefined') wmin = jminVal; //$( "#w_slider" ).slider( "value" );
 
     // Nodes
     nodesDegDim.filter([ndeg, Infinity]);
     var n = nodesDegDim.top(Infinity);
     nodeIds = d3.set(n.map(function(d) { return d.id; }));
 
-
     // Links
-    edgesWeightDim.filter([wmin, Infinity]);    
+    edgesWeightDim.filter([wmin, Infinity]);
+    junctionsWeightDim.filter([jmin, Infinity]);
     edgesConDim = efilter.dimension(function(d) {
         return nodeIds.has(d.from) && nodeIds.has(d.to);
     });
@@ -268,11 +280,11 @@ update = function(n, l) {
 
     var c = Math.min(-700 + wminVal * 100, -250);
     var ld = Math.max(120 - wminVal * 10, 40);
-    force.nodes(nodes);
-    force.links(links);
-    force.charge(c);
-    force.linkDistance(ld);
-    force.start();
+    force.nodes(nodes)
+        .links(links)
+        .charge(c)
+        .linkDistance(ld)
+        .start();
 
     // Update links
     link = link.data(force.links(), function(d) { return d.id; });
@@ -281,6 +293,7 @@ update = function(n, l) {
     link.enter().append("polyline")
         .attr("class", "link")
         .classed("junction", function(d) { return (d.type == 'EJ' || d.type == 'NMJ')})
+        .classed("hidden", function(d) { return (d.type=='EJ' && !showJunctions) || (d.type!='EJ' && !showSynapses); })
         .style("stroke-width", function(d) { return linkWeightScale(d.weight) * (d.type == 'EJ' ? 2 : 1); })
         .style("stroke", function(d) { return nodeColorScale(d.source.type); })
         .style("opacity", 0.25);
@@ -297,7 +310,6 @@ update = function(n, l) {
         .attr("class", "node")
         .call(drag)
         //.on('click', connectedNodes);
-        //.on('dblclick', function(d) { window.open(d.link, "_blank");});
         .on('dblclick', function(d) { 
             d.fixed = false; 
             d3.select(this).select("circle").classed("fixed", false);
@@ -428,15 +440,18 @@ function connectedNodes(d, elem) {
 
 
 function toggleSynapses(checkbox) {
-    link.filter(function(d) { return d.type!="EJ"}).classed("hidden", !checkbox.checked);
+    showSynapses = checkbox.checked;
+    link.filter(function(d) { return d.type!="EJ"}).classed("hidden", !showSynapses);
 }
 
 function toggleJunctions(checkbox) {
-    link.filter(function(d) { return d.type=="EJ"}).classed("hidden", !checkbox.checked);   
+    showJunctions = checkbox.checked;
+    link.filter(function(d) { return d.type=="EJ"}).classed("hidden", !showJunctions);
 }
 
 function toggleArrows(checkbox) {
-    o = checkbox.checked ? "visible" : "hidden";
+    showArrows = checkbox.checked;
+    o = showArrows ? "visible" : "hidden";
     svg.selectAll("marker").attr("style", function(d) { return "fill: " + d + "; visibility:" + o +";"});
 }
 

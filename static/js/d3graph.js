@@ -24,14 +24,15 @@ var showArrow = 0,
     showJunctions = 1,
     showSynapses = 1;
 
+var arcs = false;
+var sqrt3 = 1.7320508075688772;
+
 //-------------------------------------------------------------------
 // Grap with d3
 //-------------------------------------------------------------------
 graph = function(id, d) {
 
     data = d;
-
-    initNodePos(data.neurons);
     
     // Containers
     svg = d3.select(id).append("svg")
@@ -54,15 +55,18 @@ graph = function(id, d) {
     var weightDomain = d3.extent(data.synapses, function(s) { return s.weight; });
     linkWeightScale = d3.scale.linear().domain(weightDomain).range([1,5]);
 
+    initNodePos(data.neurons);
+    addNodeRadius(data.neurons);
+
     // Build arrows
     svg.append("svg:defs").selectAll("marker").data(colors)      // Different link/path types can be defined here
       .enter().append("svg:marker")    // This section adds in the arrows
         .attr("id", String)
         .attr("viewBox", "0 -5 10 10")
-        .attr("refX", 0)
+        .attr("refX", 10)
         .attr("refY", -0)
-        .attr("markerWidth", 6)
-        .attr("markerHeight", 6)
+        .attr("markerWidth", 8)
+        .attr("markerHeight", 8)
         .attr("markerUnits", "userSpaceOnUse")
         .attr("orient", "auto")
         .attr("style", function(d) { return "fill: " + d + "; visibility: hidden;"})
@@ -110,12 +114,18 @@ graph = function(id, d) {
     });
 
     update(data.neurons, data.synapses);
-    filter(ndegVal, wminVal, jminVal);    
+    filter(ndegVal, wminVal, jminVal);
+    
+    // Warm-start
+    for (i = 0; i < 10; i++)
+        force.tick();
+    
 
     buildAdjacency();
 }
 
 function updateCrossFilter(n, s) {
+    console.log(n.length, s.length);
     nodesDegDim.filter(null);
     edgesWeightDim.filter(null);
     junctionsWeightDim.filter(null);
@@ -123,7 +133,8 @@ function updateCrossFilter(n, s) {
     efilter.remove();
     nfilter.add(n);
     efilter.add(s);    
-
+    addNodeRadius(n);
+    update([],[]);
     update(n, s);
     filter(ndegVal, wminVal, jminVal);
 }
@@ -288,20 +299,23 @@ update = function(n, l) {
 
     // Update links
     link = link.data(force.links(), function(d) { return d.id; });
+    link.exit().remove();
 
-    //link.enter().append("line")
-    link.enter().append("polyline")
-        .attr("class", "link")
+    if (arcs)
+        var a = link.enter().append("path");
+    else
+        var a = link.enter().append("polyline");
+    
+    a.attr("class", "link")
         .classed("junction", function(d) { return (d.type == 'EJ' || d.type == 'NMJ')})
         .classed("hidden", function(d) { return (d.type=='EJ' && !showJunctions) || (d.type!='EJ' && !showSynapses); })
         .style("stroke-width", function(d) { return linkWeightScale(d.weight) * (d.type == 'EJ' ? 2 : 1); })
         .style("stroke", function(d) { return nodeColorScale(d.source.type); })
         .style("opacity", 0.25);
 
-    link.filter(function(d) { return d.type != "EJ"})
+    a.filter(function(d) { return d.type != "EJ"})
         .attr("marker-mid", function(d) { return "url(#" + nodeColorScale(d.source.type) + ")" });
-
-    link.exit().remove();
+    
 
     // Update nodes
     node = node.data(force.nodes(), function(d) { return d.id; });
@@ -316,7 +330,7 @@ update = function(n, l) {
         });
 
     nodeEnter.append("circle")
-        .attr("r", function(d) { return nodeRadiusScale(d.D); })
+        .attr("r", function(d) { return d.r; })
         .style("fill", function(d) { return nodeColorScale(d.type); });
 
     nodeEnter.append("text")
@@ -344,7 +358,7 @@ update = function(n, l) {
 tick = function() {
     force.on("tick", function(e) {
         
-
+        // Add layer forces
         var k = 75 * e.alpha;
         nodes.forEach(function(n, i) {
             if (n.type.indexOf("sensory") > -1)// && n.y > 400) 
@@ -356,18 +370,62 @@ tick = function() {
             else if (n.name.slice(-1) == "R")// && n.x < 600)
                 n.x += k;
         });
+        
+        if(arcs) {
+            link.attr("d", function(d) {
 
-        // Simple line
-        // link.attr("x1", function(d) { return d.source.x; })
-        //     .attr("y1", function(d) { return d.source.y; })
-        //     .attr("x2", function(d) { return d.target.x; })
-        //     .attr("y2", function(d) { return d.target.y; });
+                // No midpoint
+                // var dx = d.target.x - d.source.x,
+                //     dy = d.target.y - d.source.y,                    
+                //     dr = Math.sqrt(dx * dx + dy * dy),
+                //     endx = d.target.x - dx/dr * d.target.r,
+                //     endy = d.target.y - dy/dr * d.target.r,
+                //     r = d.type=="Sp" ? 0 : d.type=="S" ? 1 : 2; 
+                //     return "M" + d.source.x + "," + d.source.y + "A" + r*dr + "," + r*dr + " 0 0,1 " + endx + "," + endy;
 
-        // Polyline
-        link.attr("points", function(d) {
-            return d.source.x + "," + d.source.y + " " + 
-             (d.source.x + d.target.x)/2 + "," + (d.source.y + d.target.y)/2 + " " +
-             d.target.x + "," + d.target.y; });
+                // Midpoint
+                // var dx = d.target.x - d.source.x,
+                //     dy = d.target.y - d.source.y,
+                //     dr = Math.sqrt(dx * dx + dy * dy) / 2,
+                //     mx = d.source.x + dx,
+                //     my = d.source.y + dy,
+                //     r = d.type=="Sp" ? 0 : d.type=="S" ? 1 : 2;
+                //     return [
+                //         "M", d.source.x, d.source.y,
+                //         "A", dr, dr, 0,0,1, mx, my,
+                //         "A", dr, dr, 0,0,1, d.target.x, d.target.y
+                //     ].join(" ");
+                    
+                // // Midpoint v2
+                var dx = d.target.x - d.source.x,
+                    dy = d.target.y - d.source.y,
+                    dr = Math.sqrt(dx * dx + dy * dy),
+                    mx = (d.target.x + d.source.x) / 2,
+                    my = (d.target.y + d.source.y) / 2,
+                    len = dr - ((dr/2) * sqrt3),
+                    dir = d.type=="S" ? 0 : 2;
+                if (d.type=="EJ") {
+                    dr = 0;
+                }
+                else {
+                    mx += (dir-1) * dy * len/dr;
+                    my += -(dir-1) * dx * len/dr;
+                }
+
+                return [
+                    "M", d.source.x, d.source.y,
+                    "A", dr, dr, 0, 0, dir/2, mx, my,
+                    "A", dr, dr, 0, 0, dir/2, d.target.x, d.target.y
+                ].join(" ");
+            });
+        }
+        else {
+            //Polyline
+            link.attr("points", function(d) {
+                return d.source.x + "," + d.source.y + " " + 
+                 (d.source.x + d.target.x)/2 + "," + (d.source.y + d.target.y)/2 + " " +
+                 d.target.x + "," + d.target.y; });
+        }
 
         node.attr("transform", function (d) { return "translate(" + d.x + "," + d.y + ")"; });
         node.each(collide(0.2));
@@ -455,6 +513,12 @@ function toggleArrows(checkbox) {
     svg.selectAll("marker").attr("style", function(d) { return "fill: " + d + "; visibility:" + o +";"});
 }
 
+function arcsplease(checkbox) {
+    force.stop();
+    arcs = checkbox.checked;
+    graphReset();
+}
+
 
 function searchNode() {
     var selectedVal = document.getElementById('group1').value;
@@ -464,7 +528,7 @@ function searchNode() {
 }
 
 function initNodePos(neurons) {
-    neurons.forEach(function(d, i) { 
+    neurons.forEach(function(d) { 
         if (d.type.indexOf("sensory") > -1)
             d.y = 0;
         else if (d.type.indexOf("motor") > -1)
@@ -480,6 +544,10 @@ function initNodePos(neurons) {
     });
 }
 
+function addNodeRadius(neurons) {
+   neurons.forEach(function(d) { d.r = nodeRadiusScale(d.D); });
+}
+
 
 function graphReset() {
     document.getElementById("resetbutton").innerHTML = '<img id="ajaxloader" src="/static/images/ajax-loader.gif">'
@@ -487,13 +555,16 @@ function graphReset() {
         data = d.result;
         initNodePos(data.neurons);
         $('#wminslider').val(3);
+        $('#jminslider').val(2);
         $('#ndegslider').val(1);
         wminVal = 3;
+        wminVal = 2;
         ndegVal = 1;
         document.querySelector('#wminlabel').value = 3;
+        document.querySelector('#jminlabel').value = 2;
         document.querySelector('#ndeglabel').value = 1;
         updateCrossFilter(data['neurons'], data['synapses']);
-        document.getElementById("resetbutton").innerHTML = "Reset"
+        document.getElementById("resetbutton").innerHTML = "Reset";
       });
     return false;
 }
@@ -515,10 +586,13 @@ function subGraph() {
       }, function(d) {
         data = d.result;
         $('#wminslider').val(0);
+        $('#jminslider').val(0);
         $('#ndegslider').val(0);
         wminVal = 0;
-        ndegVal = 0;
+        jminVal = 0;
+        ndegVal = 0;        
         document.querySelector('#wminlabel').value = 0;
+        document.querySelector('#jminlabel').value = 0;
         document.querySelector('#ndeglabel').value = 0;
         updateCrossFilter(data['neurons'], data['synapses']);
         document.getElementById("fetchbutton").innerHTML = "Fetch!"

@@ -3,9 +3,11 @@ Jinja2==2.7.3
 MarkupSafe==0.23
 Werkzeug==0.9.6
 beautifulsoup4==4.3.2
+decorator==3.4.0
 gunicorn==19.1.1
 itsdangerous==0.24
 neo4jrestclient==2.1.0
+networkx==1.9.1
 numpy==1.9.1
 pandas==0.15.2
 py2neo==2.0.1

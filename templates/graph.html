@@ -36,7 +36,7 @@
             <label for="subpslider">Max path length [1-4]: </label> <output for="subpSlider" id="subplabel">3</output>
             <input type="range" id="subpslider" name="subp" value="3" min="1" max="4" oninput="document.getElementById('subplabel').value = value;">            
           </div>
-          <button id="fetchbutton" class="btn btn-default" type="button" onclick="subGraph()">Fetch!</button>
+          <button id="fetchbutton" class="btn btn-default" type="button" onclick="subGraph();">Fetch!</button>
           <button id="resetbutton" class="btn btn-default pull-right" type="button" onclick="graphReset();">Reset</button>
         </div>
         </div>
@@ -73,6 +73,9 @@
           </div>
           <div class="checkbox">
             <label><input type="checkbox" onchange="toggleArrows(this)">Arrows</label>
+          </div>
+          <div class="checkbox">
+            <label><input type="checkbox" onchange="arcsplease(this)">Arcs</label>
           </div>
         </div>
         </div>

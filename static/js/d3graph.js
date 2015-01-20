@@ -55,7 +55,7 @@ graph = function(id, d) {
     nodeRadiusScale = d3.scale.linear().domain(degreeDomain).range([10,25]);
 
     var weightDomain = d3.extent(data.synapses, function(s) { return s.weight; });
-    linkWeightScale = d3.scale.linear().domain(weightDomain).range([1,5]);
+    linkWeightScale = d3.scale.linear().domain(weightDomain).range([2,6]);
 
     initNodePos(data.neurons);
     addNodeRadius(data.neurons);
@@ -131,7 +131,6 @@ graph = function(id, d) {
 }
 
 function updateCrossFilter(n, s) {
-    console.log(n.length, s.length);
     nodesDegDim.filter(null);
     edgesWeightDim.filter(null);
     junctionsWeightDim.filter(null);
@@ -309,7 +308,6 @@ update = function(n, l) {
     // Update links
     link = link.data(force.links(), function(d) { return d.id; });
     link.exit().remove();
-
     
     var a = link.enter().append("path");
     a.attr("class", "link")
@@ -324,7 +322,8 @@ update = function(n, l) {
 
     a.filter(function(d) { return d.type != "EJ"})
         .attr("marker-mid", function(d) { return "url(#" + nodeColorScale(d.source.type) + ")" });
-    
+    //updateLinks();
+
     // Update nodes
     node = node.data(force.nodes(), function(d) { return d.id; });
         
@@ -362,6 +361,29 @@ update = function(n, l) {
 
 }
 
+updateLinks = function(l) {
+    
+    links = l;
+    force.links(links).start();
+    
+    link = link.data(force.links(), function(d) { return d.id; });
+    link.exit().remove();
+    
+    var a = link.enter().append("path");
+    a.attr("class", "link")
+        .classed("junction", function(d) { return (d.type == 'EJ' || d.type == 'NMJ')})
+        .classed("hidden", function(d) { return (d.type=='EJ' && !showJunctions) || (d.type!='EJ' && !showSynapses); })
+        .style("stroke-width", function(d) { return linkWeightScale(d.weight) * (d.type == 'EJ' ? 2 : 1); })
+        .style("stroke", function(d) { return nodeColorScale(d.source.type); })
+        .style("opacity", 0.25)
+        .attr("id", function(d) { return d.id; })
+        .on("mouseover", linkMouseOver)
+        .on("mouseout", linkMouseOut);
+
+    a.filter(function(d) { return d.type != "EJ"})
+        .attr("marker-mid", function(d) { return "url(#" + nodeColorScale(d.source.type) + ")" });
+}
+
 
 tick = function() {
     force.on("tick", function(e) {
@@ -369,14 +391,16 @@ tick = function() {
         // Add layer forces
         var k = 75 * e.alpha;
         nodes.forEach(function(n, i) {
-            if (n.type.indexOf("sensory") > -1)// && n.y > 400) 
-                n.y -= k;
-            else if (n.type.indexOf("motor") > -1)// && n.y < 600) 
-                n.y += k;
-            if (n.name.slice(-1) == "L")// && n.x > 400)
-                n.x -= k
-            else if (n.name.slice(-1) == "R")// && n.x < 600)
-                n.x += k;
+            if(! n.fixed) {
+                if (n.type.indexOf("sensory") > -1)// && n.y > 400) 
+                    n.y -= k;
+                else if (n.type.indexOf("motor") > -1)// && n.y < 600) 
+                    n.y += k;
+                if (n.name.slice(-1) == "L")// && n.x > 400)
+                    n.x -= k
+                else if (n.name.slice(-1) == "R")// && n.x < 600)
+                    n.x += k;
+            }
         });
         
         if(arcs) {
@@ -428,12 +452,6 @@ tick = function() {
             });
         }
         else {
-            //Polyline
-            // link.attr("points", function(d) {
-            //     return d.source.x + "," + d.source.y + " " + 
-            //      (d.source.x + d.target.x)/2 + "," + (d.source.y + d.target.y)/2 + " " +
-            //      d.target.x + "," + d.target.y; });
-
             link.attr("d", function(d) {
                 return [
                     "M", d.source.x, d.source.y,
@@ -515,7 +533,6 @@ function connectedNodes(d, elem) {
 function linkMouseOver(d) {
     //link.classed("active", function(p) { return p==d});
     d3.select(this)
-        .style("stroke-width", function(d) { return 2 * linkWeightScale(d.weight); })
         .style("opacity", 1);
 
     container.append("text")
@@ -533,7 +550,6 @@ function linkMouseOver(d) {
 
 function linkMouseOut(d) {
     d3.select(this)
-        .style("stroke-width", function(d) { return linkWeightScale(d.weight); })
         .style("opacity", 0.25);
     container.selectAll(".labelText").remove();
 }
@@ -558,7 +574,9 @@ function toggleArrows(checkbox) {
 function arcsplease(checkbox) {
     force.stop();
     arcs = checkbox.checked;
-    graphReset();
+    l=links;
+    updateLinks([]);
+    updateLinks(l);
 }
 
 

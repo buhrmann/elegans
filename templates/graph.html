@@ -4,6 +4,7 @@
 
   {% if data %}
     <div id="graph"></div>
+    
      <div class="uiwidget" id="menu-widget">
       <form>        
         <div class="formpanel">
@@ -53,15 +54,15 @@
             <button id="prune1" type="button" data-toggle="button" name="option" value="1" class="btn btn-default active">Prune</button>
             <button id="prune2" type="button" data-toggle="button" name="option" value="2" class="btn btn-default">Hide</button>
           </div></p>
-          <div class="form-group">
+          <div class="form-group" id="ndeg">
             <label for="ndegslider">Node degree [0-200]:</label> <output for="thresholdSlider" id="ndeglabel">2</output>
             <input type="range" id="ndegslider" name="ndeg" value="2" min="0" max="200" oninput="filterNDeg(value)">            
           </div>
-          <div class="form-group">
+          <div class="form-group" id="wmin">
             <label for="wminslider">Synapse min weight [0-40]:</label> <output for="wminslider" id="wminlabel">3</output>
             <input type="range" id="wminslider" name="wmin" value="3" min="0" max="40" oninput="filterWMin(value)">            
           </div>
-          <div class="form-group">
+          <div class="form-group" id="jmin">
             <label for="jminslider">Junction min weight [0-25]:</label> <output for="jminslider" id="jminlabel">2</output>
             <input type="range" id="jminslider" name="jmin" value="2" min="0" max="25" oninput="filterJMin(value)">            
           </div>
@@ -105,8 +106,16 @@
           </a></small>
         </h3>
         <div id="nodepanel" class="panel-collapse collapse in">
-        <span id="nodeinfo"></span>
-      </div>
+          <p>
+            <div class="input-group input-group-sm">
+              <input id="search-node" type="text" placeholder="name" value="ASEL" size="4" class="form-control"/>
+              <span class="input-group-btn">
+                <button type="button" id="snbutton" class="btn btn-default" onclick="searchNode();">Search</button>
+              </span>
+            </div>
+          </p>
+          <span id="nodeinfo"></span>
+        </div>
       </div>
     </div>
   {% endif %}
@@ -121,6 +130,10 @@
   $(function() {
     $('#prune-radio button').click(function() {
       $(this).addClass('active').siblings().removeClass('active'); 
+    });
+
+    $('#search-node').click(function() {
+      $(this).removeClass("alert-danger");
     });
     
     $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};

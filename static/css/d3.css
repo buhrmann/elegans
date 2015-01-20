@@ -5,11 +5,8 @@ body {
 }
 
 #graph {
-  position: absolute;
-  top: 20px;
-  left: 15%;
-  width: 85%;
-  height: 100%;
+  display: block; 
+  width: 100%; 
   margin: 0 auto;
 }
 
@@ -55,6 +52,10 @@ output {
 
 #fetchbutton, #resetbutton {
   width: 75px;
+}
+
+.form-control {
+  /*background: rgba(255,255,255,0.5);*/
 }
 
 svg {

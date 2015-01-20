@@ -1,6 +1,8 @@
 // Setup
-var width = 1000;
-var height = 1000;
+// var width = 1000;
+// var height = 1000;
+var width = window.innerWidth;
+var height = window.innerHeight;
 var data;
 var force, drag, zoom;
 var nodeColorScale;
@@ -106,11 +108,15 @@ graph = function(id, d) {
     edgesWeightDim = efilter.dimension(function(d) { return d.type != "EJ" ? d.weight : 6666; });
     junctionsWeightDim = efilter.dimension(function(d) { return d.type == "EJ" ? d.weight : 6666; });
 
-    //Search    
-    var optArray = d3.set(data.neurons.map(function(d) { return d.group;} ).sort()).values();
+    //S earch    
+    var groupArray = d3.set(data.neurons.map(function(d) { return d.group;} ).sort()).values();
     $(function () {
-        $("#group1").autocomplete({source: optArray});
-        $("#group2").autocomplete({source: optArray});
+        $("#group1").autocomplete({source: groupArray});
+        $("#group2").autocomplete({source: groupArray});
+    });
+    var nameArray = d3.set(data.neurons.map(function(d) { return d.name;} ).sort()).values();
+    $(function () {
+        $("#search-node").autocomplete({source: nameArray});
     });
 
     update(data.neurons, data.synapses);
@@ -521,11 +527,17 @@ function arcsplease(checkbox) {
 
 
 function searchNode() {
-    var selectedVal = document.getElementById('group1').value;
-    svg = d3.select("svg");
-    var sel = node.filter(function(d) { return d.name == selectedVal; })
-    connectedNodes(sel.data()[0]);
+    var selectedVal = document.getElementById('search-node').value;
+    var sel = node.filter(function(d) { return d.name == selectedVal; });
+    if(sel[0].length > 0) {
+        showNodeInfo(sel.data()[0]);
+        connectedNodes(sel.data()[0]);        
+    }
+    else {
+        $('#search-node').addClass("alert-danger");
+    }
 }
+
 
 function initNodePos(neurons) {
     neurons.forEach(function(d) { 
@@ -549,20 +561,20 @@ function addNodeRadius(neurons) {
 }
 
 
+function resetSlider(s, v) {
+    $('#' + s + ' input').val(v);
+    $('#' + s + ' output').val(v);
+}
+
+
 function graphReset() {
     document.getElementById("resetbutton").innerHTML = '<img id="ajaxloader" src="/static/images/ajax-loader.gif">'
     $.getJSON($SCRIPT_ROOT + '/_reset', function(d) {
         data = d.result;
         initNodePos(data.neurons);
-        $('#wminslider').val(3);
-        $('#jminslider').val(2);
-        $('#ndegslider').val(1);
-        wminVal = 3;
-        wminVal = 2;
-        ndegVal = 1;
-        document.querySelector('#wminlabel').value = 3;
-        document.querySelector('#jminlabel').value = 2;
-        document.querySelector('#ndeglabel').value = 1;
+        resetSlider("jmin", jminVal=2);
+        resetSlider("wmin", wmin=3);
+        resetSlider("ndeg", ndegVal=1);
         updateCrossFilter(data['neurons'], data['synapses']);
         document.getElementById("resetbutton").innerHTML = "Reset";
       });
@@ -585,15 +597,9 @@ function subGraph() {
         dir: dir
       }, function(d) {
         data = d.result;
-        $('#wminslider').val(0);
-        $('#jminslider').val(0);
-        $('#ndegslider').val(0);
-        wminVal = 0;
-        jminVal = 0;
-        ndegVal = 0;        
-        document.querySelector('#wminlabel').value = 0;
-        document.querySelector('#jminlabel').value = 0;
-        document.querySelector('#ndeglabel').value = 0;
+        resetSlider("jmin", jminVal=0);
+        resetSlider("wmin", wmin=0);
+        resetSlider("ndeg", ndegVal=0);
         updateCrossFilter(data['neurons'], data['synapses']);
         document.getElementById("fetchbutton").innerHTML = "Fetch!"
       });

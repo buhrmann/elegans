@@ -65,6 +65,7 @@ svg {
 .link {
   stroke: #bbb;
   fill: none;
+  cursor: default;
 }
 
 .junction {
@@ -79,7 +80,6 @@ svg {
 circle {
   stroke-width: 1px;
   stroke: #fff;
-  /*visibility:hidden;*/
   cursor: pointer;
 }
 

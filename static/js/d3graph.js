@@ -143,6 +143,9 @@ function updateCrossFilter(n, s) {
     update([],[]);
     update(n, s);
     filter(ndegVal, wminVal, jminVal);
+    // Warm-start
+    for (i = 0; i < 10; i++)
+        force.tick();
 }
 
 
@@ -307,22 +310,21 @@ update = function(n, l) {
     link = link.data(force.links(), function(d) { return d.id; });
     link.exit().remove();
 
-    if (arcs)
-        var a = link.enter().append("path");
-    else
-        var a = link.enter().append("polyline");
     
+    var a = link.enter().append("path");
     a.attr("class", "link")
         .classed("junction", function(d) { return (d.type == 'EJ' || d.type == 'NMJ')})
         .classed("hidden", function(d) { return (d.type=='EJ' && !showJunctions) || (d.type!='EJ' && !showSynapses); })
         .style("stroke-width", function(d) { return linkWeightScale(d.weight) * (d.type == 'EJ' ? 2 : 1); })
         .style("stroke", function(d) { return nodeColorScale(d.source.type); })
-        .style("opacity", 0.25);
+        .style("opacity", 0.25)
+        .attr("id", function(d) { return d.id; })
+        .on("mouseover", linkMouseOver)
+        .on("mouseout", linkMouseOut);
 
     a.filter(function(d) { return d.type != "EJ"})
         .attr("marker-mid", function(d) { return "url(#" + nodeColorScale(d.source.type) + ")" });
     
-
     // Update nodes
     node = node.data(force.nodes(), function(d) { return d.id; });
         
@@ -427,12 +429,19 @@ tick = function() {
         }
         else {
             //Polyline
-            link.attr("points", function(d) {
-                return d.source.x + "," + d.source.y + " " + 
-                 (d.source.x + d.target.x)/2 + "," + (d.source.y + d.target.y)/2 + " " +
-                 d.target.x + "," + d.target.y; });
-        }
+            // link.attr("points", function(d) {
+            //     return d.source.x + "," + d.source.y + " " + 
+            //      (d.source.x + d.target.x)/2 + "," + (d.source.y + d.target.y)/2 + " " +
+            //      d.target.x + "," + d.target.y; });
 
+            link.attr("d", function(d) {
+                return [
+                    "M", d.source.x, d.source.y,
+                    "L", (d.source.x + d.target.x)/2, (d.source.y + d.target.y)/2,
+                    "L", d.target.x, d.target.y
+                ].join(" ");
+            });
+        }
         node.attr("transform", function (d) { return "translate(" + d.x + "," + d.y + ")"; });
         node.each(collide(0.2));
     });
@@ -500,6 +509,33 @@ function connectedNodes(d, elem) {
         highlight = 0;
     }
     d3.event.stopPropagation();
+}
+
+
+function linkMouseOver(d) {
+    //link.classed("active", function(p) { return p==d});
+    d3.select(this)
+        .style("stroke-width", function(d) { return 2 * linkWeightScale(d.weight); })
+        .style("opacity", 1);
+
+    container.append("text")
+        .attr("class","labelText")
+        .style("font-size", "11px")
+        .style("fill", nodeColorScale(d.source.type))
+        .attr("x", "50")
+        .attr("y", "-20")
+        .attr("dy", "-0.2em")
+        .attr("text-anchor", "start")
+        .append("textPath")
+            .attr("xlink:href", '#' + d.id)
+            .text(d.type + " " + d.weight); 
+}
+
+function linkMouseOut(d) {
+    d3.select(this)
+        .style("stroke-width", function(d) { return linkWeightScale(d.weight); })
+        .style("opacity", 0.25);
+    container.selectAll(".labelText").remove();
 }
 
 
@@ -573,7 +609,7 @@ function graphReset() {
         data = d.result;
         initNodePos(data.neurons);
         resetSlider("jmin", jminVal=2);
-        resetSlider("wmin", wmin=3);
+        resetSlider("wmin", wminVal=3);
         resetSlider("ndeg", ndegVal=1);
         updateCrossFilter(data['neurons'], data['synapses']);
         document.getElementById("resetbutton").innerHTML = "Reset";
@@ -597,8 +633,9 @@ function subGraph() {
         dir: dir
       }, function(d) {
         data = d.result;
+        jmin = wmin = ndeg = 0
         resetSlider("jmin", jminVal=0);
-        resetSlider("wmin", wmin=0);
+        resetSlider("wmin", wminVal=0);
         resetSlider("ndeg", ndegVal=0);
         updateCrossFilter(data['neurons'], data['synapses']);
         document.getElementById("fetchbutton").innerHTML = "Fetch!"

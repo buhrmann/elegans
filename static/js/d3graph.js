@@ -144,7 +144,8 @@ function updateCrossFilter(n, s) {
     nfilter.remove();
     efilter.remove();
     nfilter.add(n);
-    efilter.add(s);    
+    efilter.add(s);  
+    initNodePos(n);  
     addNodeRadius(n);
     update([],[]);
     update(n, s);
@@ -663,11 +664,13 @@ function initNodePos(neurons) {
         if (d.type.indexOf("sensory") > -1)
             d.y = 0;
         else if (d.type.indexOf("motor") > -1)
-            d.y = 600;
+            d.y = height;
+        else if (d.type.indexOf("inter") > -1)
+            d.y = height/2;
         if (d.name.slice(-1) == "L")
-            d.x = 200;
+            d.x = 0.25 * width;
         else if (d.name.slice(-1) == "R")
-            d.x = 600;
+            d.x = 0.75 * width;
 
         // Fix AVAL and AVAR to the middle
         //if (d.name="AVAL")

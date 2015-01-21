@@ -9,11 +9,11 @@
       <form>
         <div class="formpanel">
           <h3>Find neuron
-            <small><a href="#nodepanel" data-toggle="collapse" aria-expanded="true" aria-controls="nodepanel">
+            <small><a href="#searchpanel" data-toggle="collapse" aria-expanded="true" aria-controls="nodepanel">
             <span class='glyphicon glyphicon-resize-small pull-right'></span>
             </a></small>
           </h3>
-          <div id="nodepanel" class="panel-collapse collapse in">
+          <div id="searchpanel" class="panel-collapse collapse in">
             <p>
               <div class="input-group input-group-sm">
                 <input id="search-node" type="text" placeholder="name" value="ASEL" size="4" class="form-control"/>
@@ -35,7 +35,7 @@
           Choose two neuron groups to see the subgraph connecting them (given minimum connection weight and path length).
           <p>
             <div class="input-group input-group-sm">
-              <input id="group1" type="search" placeholder="Group" value="ASE" size="4" class="form-control"/>
+              <input id="group1" type="search" placeholder="Group1" size="4" class="form-control"/>
               <div class="input-group-btn">
                 <button type="button" id="dirButton" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-expanded="false" title="Choose directed or undirected connections">-></button>
                 <ul class="dropdown-menu" role="menu">
@@ -43,22 +43,35 @@
                   <li><a href="#">-</a></li>
                 </ul>
               </div>
-              <input id="group2" type="search" placeholder="Group" value="SMB" size="4" class="form-control"/>
+              <input id="group2" type="search" placeholder="Group2"  size="4" class="form-control"/>
             </div>
           </p>
         
-          <div class="form-group">
+          <div class="form-group" id="subw">
             <label for="subwslider">Synapse min weight [1-10]: </label> <output for="subwSlider" id="subwlabel">1</output>
             <input type="range" id="subwslider" name="subw" value="1" min="1" max="10" oninput="document.getElementById('subwlabel').value = value;">            
           </div>
-          <div class="form-group">
+          <div class="form-group" id="subj">
             <label for="subjslider">Junction min weight [1-10]: </label> <output for="subjSlider" id="subjlabel">1</output>
             <input type="range" id="subjslider" name="subj" value="1" min="1" max="10" oninput="document.getElementById('subjlabel').value = value;">            
           </div>
-          <div class="form-group">
+          <div class="form-group" id="subp">
             <label for="subpslider">Max path length [1-4]: </label> <output for="subpSlider" id="subplabel">3</output>
             <input type="range" id="subpslider" name="subp" value="3" min="1" max="4" oninput="document.getElementById('subplabel').value = value;">            
           </div>
+
+          <p>            
+            <div class="dropdown">
+              <label for="presetButton" style="width:100%">Or simply select a preset:</label>
+              <button class="btn btn-default btn-block dropdown-toggle" type="button" id="presetButton" data-toggle="dropdown" aria-expanded="true">
+                Presets
+                <span class="caret"></span>
+              </button>
+              <ul class="dropdown-menu" role="menu" aria-labelledby="presetButton" id="presetList">
+              </ul>
+            </div>
+          </p>
+
           <div class="btn-group">
           <button id="fetchbutton" class="btn btn-default" type="button" title="Query subgraph with selected parameters" onclick="subGraph();">Fetch</button>
           <button id="expandbutton" class="btn btn-default" type="button" title="Fetch ALL connections for fetched subgraph" onclick="expand();" disabled="disabled">Expand</button>
@@ -125,7 +138,7 @@
       </div>
 
       <div class="formpanel">
-        <h3><span id="node-heading">Node Info</span>
+        <h3>Neuron <span id="node-heading"></span>
           <small><a href="#nodepanel" data-toggle="collapse" aria-expanded="true" aria-controls="nodepanel">
           <span class='glyphicon glyphicon-resize-small pull-right'></span>
           </a></small>
@@ -145,7 +158,9 @@
   <script type="text/javascript" src={{url_for('static', filename='js/crossfilter.min.js')}}></script>  
   <!--<script type="text/javascript" src={{url_for('static', filename='js/colorbrewer.v1.min.js')}}></script>  -->
   <script>
+  // Register event handlers right here
   $(function() {
+
     $('#prune-radio button').click(function() {
       $(this).addClass('active').siblings().removeClass('active'); 
     });
@@ -160,12 +175,25 @@
       $(this).parents(".input-group-btn").find('.btn').text($(this).text());
       $(this).parents(".input-group-btn").find('.btn').val($(this).text());
     });
-  });
 
-  $(".btn").mouseup(function(){
-    $(this).blur();
-  });
-  
+    // Change minimize/maximize buttons
+    $('.collapse').on('hidden.bs.collapse', function () {
+      $(this).parent().find("span.glyphicon").removeClass("glyphicon-resize-small").addClass("glyphicon-resize-full");
+    });
+    $('.collapse').on('show.bs.collapse', function () {
+      $(this).parent().find("span.glyphicon").removeClass("glyphicon-resize-full").addClass("glyphicon-resize-small");
+    });
+
+    $("li a[role='menuitem']").click(function(e){
+      applyPreset($(this).attr("id"));
+      e.preventDefault();
+    });
+
+    $(".btn").mouseup(function(){
+      $(this).blur();
+    });
+
+  }); 
   </script>
 
   <script type="text/javascript" src={{url_for('static', filename='js/d3graph.js')}}></script>    

@@ -28,7 +28,7 @@ body {
 }
 
 .uiwidget h3 {
-  margin-top: 5px;
+  margin-top: 0px;
 }
 
 input[type=range]{
@@ -84,7 +84,14 @@ circle {
 }
 
 circle.fixed {
-  stroke: #f00;
+  stroke: #000;
+  stroke-width: 2px;
+}
+
+circle.selected {
+  stroke: #000;
+  stroke-width: 2px;
+  stroke-dasharray: 6 4;
 }
 
 .node-label {

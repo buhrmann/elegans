@@ -20,7 +20,6 @@ var svg;
 var ndegVal = 2, 
     wminVal = 3,
     jminVal = 2;
-var highlight = 0;
 var highlightId = -1;
 var showArrow = 0,
     showJunctions = 1,
@@ -29,6 +28,12 @@ var fetched = false;
 
 var arcs = false;
 var sqrt3 = 1.7320508075688772;
+
+var presets = [
+    {name: "Salt klinotaxis small (Izquierdo2013)", g1:"ASE", g2:"SMB", smin: 2, jmin: 2, length:3},
+    {name: "Salt klinotaxis big (Izquierdo2013)", g1:"ASE", g2:"SMB", smin: 1, jmin: 1, length:3},
+    {name: "Locomotion (wormatlas)", g1:"ALM, AVM, PVM, PLM, ASH", g2:"VB, DB, RMD, RIM, SMD, VA, DA", smin: 1, jmin: 1, length:2}
+]
 
 //-------------------------------------------------------------------
 // Grap with d3
@@ -88,19 +93,20 @@ graph = function(id, d) {
         .size([width, height])
         .on("tick", tick);
 
-    drag = force.drag().on("dragstart", dragstarted);
+    drag = force.drag().on("dragstart", dragstarted).on("drag", dragged);
     zoom = d3.behavior.zoom().scaleExtent([0.75, 2]).on("zoom", zoomed); 
     svg.call(zoom).on("dblclick.zoom", null);
 
     node = nodeLayer.selectAll(".node");
     link = linkLayer.selectAll(".link");  
 
-    // svg.on("click", function() {    
-    //     node.style("opacity", 1);
-    //     link.style("opacity", 0.25);
-    //     highlight = 0;
-    //     d3.event.stopPropagation();
-    // });  
+    svg.on("click", function() {
+        toggleSelected(highlightId, false);
+        connectedNodes(null);
+        highlightId = -1;
+        removeNodeInfo();
+        d3.event.stopPropagation();
+    });  
 
     // Crossfilter
     nfilter.add(data['neurons']);
@@ -127,8 +133,8 @@ graph = function(id, d) {
     for (i = 0; i < 10; i++)
         force.tick();
     
-
     buildAdjacency();
+    buildPresets();
 }
 
 function updateCrossFilter(n, s) {
@@ -146,6 +152,31 @@ function updateCrossFilter(n, s) {
     // Warm-start
     for (i = 0; i < 10; i++)
         force.tick();
+}
+
+
+function buildPresets() {
+    for (var i = 0; i < presets.length; i++) {
+        d3.select("#presetList")
+            .append("li")
+                .attr("role", "presentation")
+                .append("a")
+                    .attr("href", "#")
+                    .attr("id", i)
+                    .attr("role", "menuitem")
+                    .attr("tabindex", "-1")
+                    .text(presets[i]['name']);
+    };
+}
+
+function applyPreset(id) {
+    p = presets[id];
+    console.log(p);
+    $("#group1").val(p.g1);
+    $("#group2").val(p.g2);
+    setSlider("subw", p.smin);
+    setSlider("subj", p.jmin);
+    setSlider("subp", p.length);
 }
 
 
@@ -259,8 +290,10 @@ function htmlTabForNode(d){
         '<li class="list-group-item"><span class="badge stats-item">' + d.inD + '</span>In Degree</li>' +
         '<li class="list-group-item"><span class="badge stats-item">' + d.outD + '</span>Out Degree</li>' +
         '<li class="list-group-item"><span class="badge stats-item">' + d.AYNbr + '</span>AYNbr</li>' +
-        '<li class="list-group-item"><a href="' + d.link + 
+        '<li class="list-group-item"><a target="_blank" href="' + d.link + 
             '"><span class="glyphicon glyphicon-new-window pull-right"></span>In Worm Atlas </a></li>' +
+        '<li class="list-group-item"><a target="_blank" href="http://wormweb.org/neuralnet#c=' + d.group +  
+            '&m=1"><span class="glyphicon glyphicon-new-window pull-right"></span>In Worm Web </a></li>' +
     '</ul>'
     return str;
 }
@@ -285,10 +318,11 @@ function showPopover(d, dir) {
 
 function removeNodeInfo() {
     document.getElementById("nodeinfo").innerHTML = "";
-    document.getElementById("node-heading").innerHTML = "Node Info";
+    document.getElementById("node-heading").innerHTML = "";
 }
 
 function showNodeInfo(d) {
+    //console.log(htmlTabForNode(d));
     document.getElementById("nodeinfo").innerHTML = htmlTabForNode(d);
     document.getElementById("node-heading").innerHTML = d.name;
 }
@@ -323,19 +357,18 @@ update = function(n, l) {
 
     a.filter(function(d) { return d.type != "EJ"})
         .attr("marker-mid", function(d) { return "url(#" + nodeColorScale(d.source.type) + ")" });
-    //updateLinks();
 
     // Update nodes
     node = node.data(force.nodes(), function(d) { return d.id; });
         
     var nodeEnter = node.enter().append("g")
         .attr("class", "node")
-        .call(drag)
-        //.on('click', connectedNodes);
-        .on('dblclick', function(d) { 
-            d.fixed = false; 
-            d3.select(this).select("circle").classed("fixed", false);
-        });
+        .on('click', function(d) { 
+            if (d3.event.defaultPrevented) return;
+            clicker(d, this);            
+            d3.event.stopPropagation();
+        })
+        .call(drag);
 
     nodeEnter.append("circle")
         .attr("r", function(d) { return d.r; })
@@ -348,15 +381,12 @@ update = function(n, l) {
         .text(function(d) { return d.name; });
 
     nodeEnter.on("mouseover", function(d) {
-        //showPopover.call(this, d, 'auto top');
-        showNodeInfo(d);        
-        connectedNodes(d, this);   
-    })
+        connectedNodes(d);
+    });
 
     nodeEnter.on("mouseout", function(d) {
-        //removePopovers();
         connectedNodes(null);
-    })
+    });
 
     node.exit().remove();
 
@@ -466,7 +496,45 @@ tick = function() {
     });
 }
 
+dblclick_timer = false;
+function clicker(d, elem) {
+    if (dblclick_timer) {
+        clearTimeout(dblclick_timer);
+        dblclick_timer = false;
+        nodeDblClicked(d, elem);
+    }
+    else dblclick_timer = setTimeout( function() {
+        dblclick_timer = false;
+        nodeClicked(d);
+    }, 200);
+};
+
+function nodeClicked(d) {
+    // Mark selected node      
+    if (highlightId != d.id) {
+        showNodeInfo(d); 
+        toggleSelected(highlightId, false);
+        highlightId = d.id;
+        toggleSelected(highlightId, true);
+    }
+    else
+    {
+        removeNodeInfo();
+        toggleSelected(highlightId, false);
+        highlightId = -1;
+    }
+}
+
+function nodeDblClicked(d, elem) {
+    d.fixed = false; 
+    d3.select(elem).select("circle").classed("fixed", false);
+}
+
 function dragstarted(d) {
+     d3.event.sourceEvent.stopPropagation();
+}
+
+function dragged(d) {
     d3.event.sourceEvent.stopPropagation();
     d.fixed = true;
     d3.select(this).select("circle").classed("fixed", true);
@@ -505,29 +573,24 @@ collide = function(alpha) {
     };
 }
 
+function toggleSelected(i, b) {
+    node.filter(function(n) { return n.id == i; })
+        .select("circle").classed("selected", b);
+}
 
-function connectedNodes(d, elem) {    
-    if (d != null && (highlight == 0 || highlightedId != d.id)) {
+function connectedNodes(d) {
+    if (d != null) {
         //Reduce the opacity of all but the neighbouring nodes
-        highlightedId = d.id;
-        //d3.select(elem).select("circle").style("stroke", "#000");
         node.style("opacity", function (o) {
             return neighboring(d, o) | neighboring(o, d) ? 1 : 0.1;
         });
-
         link.style("opacity", function (o) {
             return d.id==o.from | d.id==o.to ? 1 : 0.05;
         });
-        //Reduce the op
-        highlight = 1;
-    } else {
-        //Put them back to opacity=1
+    } else {     
         node.style("opacity", 1);
-        //node.select("circle").style("stroke", "#fff");
         link.style("opacity", 0.25);
-        highlight = 0;
     }
-    d3.event.stopPropagation();
 }
 
 
@@ -585,7 +648,8 @@ function searchNode() {
     var selectedVal = document.getElementById('search-node').value;
     var sel = node.filter(function(d) { return d.name == selectedVal; });
     if(sel[0].length > 0) {
-        showNodeInfo(sel.data()[0]);
+        //showNodeInfo(sel.data()[0]);
+        nodeClicked(sel.data()[0]);
         connectedNodes(sel.data()[0]);        
     }
     else {
@@ -616,7 +680,7 @@ function addNodeRadius(neurons) {
 }
 
 
-function resetSlider(s, v) {
+function setSlider(s, v) {
     $('#' + s + ' input').val(v);
     $('#' + s + ' output').val(v);
 }
@@ -627,9 +691,9 @@ function graphReset() {
     $.getJSON($SCRIPT_ROOT + '/_reset', function(d) {
         data = d.result;
         initNodePos(data.neurons);
-        resetSlider("jmin", jminVal=2);
-        resetSlider("wmin", wminVal=3);
-        resetSlider("ndeg", ndegVal=1);
+        setSlider("jmin", jminVal=2);
+        setSlider("wmin", wminVal=3);
+        setSlider("ndeg", ndegVal=1);
         updateCrossFilter(data['neurons'], data['synapses']);
         document.getElementById("resetbutton").innerHTML = "Reset";
       });
@@ -646,9 +710,9 @@ function expand() {
             names: name_list
           }, function(d) {
             data = d.result;
-            resetSlider("jmin", jminVal=0);
-            resetSlider("wmin", wminVal=0);
-            resetSlider("ndeg", ndegVal=0);
+            setSlider("jmin", jminVal=0);
+            setSlider("wmin", wminVal=0);
+            setSlider("ndeg", ndegVal=0);
             updateCrossFilter(data['neurons'], data['synapses']);
             document.getElementById("expandbutton").innerHTML = "Expand"
           });
@@ -674,9 +738,9 @@ function subGraph() {
       }, function(d) {
         data = d.result;
         jmin = wmin = ndeg = 0
-        resetSlider("jmin", jminVal=0);
-        resetSlider("wmin", wminVal=0);
-        resetSlider("ndeg", ndegVal=0);
+        setSlider("jmin", jminVal=0);
+        setSlider("wmin", wminVal=0);
+        setSlider("ndeg", ndegVal=0);
         updateCrossFilter(data['neurons'], data['synapses']);
         document.getElementById("fetchbutton").innerHTML = "Fetch"
         $('#expandbutton').prop('disabled', false);

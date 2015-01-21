@@ -184,10 +184,9 @@ def subgraph(g1, g2, l=2, ws=2, wj=2, dir='->'):
           "RETURN COLLECT(DISTINCT udr), COLLECT(DISTINCT uns)")
 
     parameters = {"g1":g1, "g2":g2, "ws":ws, "wj":wj, "l":l}
-    print "Querying graph with "
-    print q, parameters
+    # print "Querying graph with ", q, parameters
     res = g.query(q, params=parameters)[0]
-    print "...Done querying."
+    # print "...Done querying."
     res_syns = res[0]
     res_nodes = res[1]
     synapses = []
@@ -198,8 +197,8 @@ def subgraph(g1, g2, l=2, ws=2, wj=2, dir='->'):
         neuron['id'] = n['metadata']['id']
         neurons.append(neuron)
 
-    for n in neurons:
-         print n['id'], n['name']
+    # for n in neurons:
+    #      print n['id'], n['name']
 
     for syn in res_syns:
         # print syn, "\n"
@@ -207,7 +206,7 @@ def subgraph(g1, g2, l=2, ws=2, wj=2, dir='->'):
         # Connected nodes are referenced by their index in start and end properties (within url)
         s['from'] = int(syn['start'].rsplit("/", 1)[1])
         s['to'] = int(syn['end'].rsplit("/", 1)[1])
-        print s['from'], " -> ", s['to']
+        # print s['from'], " -> ", s['to']
         s['source'] = [i for i,n in enumerate(neurons) if n['id'] == s['from']][0]
         s['target'] = [i for i,n in enumerate(neurons) if n['id'] == s['to']][0]
         s['id'] = syn['metadata']['id']

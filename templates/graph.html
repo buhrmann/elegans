@@ -144,10 +144,21 @@
           </a></small>
         </h3>
         <div id="nodepanel" class="panel-collapse collapse in">
-          <p>
           <span id="nodeinfo"></span>
         </div>
       </div>
+
+      <div class="formpanel">
+        <h3>Export
+          <small><a href="#exppanel" data-toggle="collapse" aria-expanded="true" aria-controls="exppanel">
+          <span class='glyphicon glyphicon-resize-small pull-right'></span>
+          </a></small>
+        </h3>
+        <div id="exppanel" class="panel-collapse collapse in">
+          <a href="{{url_for('export')}}" target="_blank" class="btn btn-default" role="button" title="Export current graph">Export</a>
+        </div>
+      </div>
+
     </div>
   {% endif %}
 {% endblock %}

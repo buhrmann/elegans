@@ -6,7 +6,6 @@ from networkx.readwrite import json_graph as jsg
 def toNx(neurons, synapses):
     g = nx.MultiDiGraph()
 
-
     for n in neurons:
         nc = n.copy()
         i = nc.pop('id')
@@ -24,7 +23,7 @@ def toNx(neurons, synapses):
 
 def toJson(g):
     js = jsg.node_link_data(g)
-    print json.dumps(js, indent=2, sort_keys=True)
+    js = json.dumps(js, indent=2, sort_keys=True)
     return js
 
 

@@ -1,6 +1,7 @@
-from flask import Flask, render_template, request, flash, url_for, session, redirect, jsonify
+from flask import Flask, render_template, request, flash, url_for, session, redirect, jsonify, Response
 import json
 import neo
+import netx
 
 # Configuration 
 DEBUG = True
@@ -11,6 +12,9 @@ PASSWORD = 'inform'
 app = Flask(__name__)
 app.config.from_object(__name__)
 
+# Cache the results on server
+n_cache = []
+s_cache = []
 
 @app.route('/build')
 def build():
@@ -22,15 +26,17 @@ def build():
 @app.route('/')
 @app.route('/graph')
 def index():
-    ns = neo.neurons()
-    ss = neo.synapsesD3(ns, 0)
-    d = {'neurons':ns, 'synapses':ss}
+    global n_cache, s_cache
+    n_cache = neo.neurons()
+    s_cache = neo.synapsesD3(n_cache, 0)
+    d = {'neurons':n_cache, 'synapses':s_cache}
     j = json.dumps(d)
     return render_template('graph.html', data=j)
 
 
 @app.route('/_subgraph')
 def subgraph():
+    global n_cache, s_cache
     g1 = request.args.get('group1', "no group1", type=str)
     g1 = [s.strip() for s in g1.split(",")]
     g2 = request.args.get('group2', "no group2", type=str)
@@ -39,23 +45,37 @@ def subgraph():
     wj = request.args.get('minWeightJ', 1, type=int)
     l = request.args.get('maxLength', 2, type=int)
     dir = request.args.get('dir', '->', type=str)
-    res = neo.subgraph(g1, g2, l, ws, wj, dir)
+    res = neo.subgraph(g1, g2, l, ws, wj, dir)    
+    n_cache = res['neurons']
+    s_cache = res['synapses']
     return jsonify(result=res)
 
 
 @app.route('/_expand')
 def expand():
+    global n_cache, s_cache
     names = request.args.getlist('names[]')
-    res = neo.allConsForSet(names)
+    res = neo.allConsForSet(names)    
+    n_cache = res['neurons']
+    s_cache = res['synapses']    
     return jsonify(result=res)
 
 
 @app.route('/_reset')
 def reset():
-    ns = neo.neurons()
-    ss = neo.synapsesD3(ns, 0)
-    res = {'neurons':ns, 'synapses':ss}
+    global n_cache, s_cache
+    n_cache = neo.neurons()
+    s_cache = neo.synapsesD3(n_cache, 0)
+    res = {'neurons':n_cache, 'synapses':s_cache}
     return jsonify(result=res)
+
+
+@app.route('/export')
+def export():
+    nxg = netx.toNx(n_cache, s_cache)
+    jsg = netx.toJson(nxg)
+    resp = Response(jsg, mimetype="application/json")
+    return resp
 
 
 @app.route('/sigma')

@@ -35,10 +35,18 @@ def subgraph():
     g1 = [s.strip() for s in g1.split(",")]
     g2 = request.args.get('group2', "no group2", type=str)
     g2 = [s.strip() for s in g2.split(",")]
-    w = request.args.get('minWeight', 1, type=int)
+    ws = request.args.get('minWeightS', 1, type=int)
+    wj = request.args.get('minWeightJ', 1, type=int)
     l = request.args.get('maxLength', 2, type=int)
     dir = request.args.get('dir', '->', type=str)
-    res = neo.subgraph(g1, g2, l, w, dir)
+    res = neo.subgraph(g1, g2, l, ws, wj, dir)
+    return jsonify(result=res)
+
+
+@app.route('/_expand')
+def expand():
+    names = request.args.getlist('names[]')
+    res = neo.allConsForSet(names)
     return jsonify(result=res)
 
 

@@ -6,9 +6,12 @@ from neo4jrestclient import client
 from neo4jrestclient.client import GraphDatabase
 from urlparse import urlparse, urlunparse
 
+import networkx as nx
+
 import numpy as np
 import json
 import preproc
+
 
 # Get connection to graph
 def graph():
@@ -26,6 +29,7 @@ def graphR():
         return GraphDatabase(url_without_auth, username = url.username, password = url.password)
         
 g = graphR()
+
 
 # Imports neurons from source files
 # TODO: store preprocessed data locally as csv, then import without need to recreate each time
@@ -83,6 +87,7 @@ def neurons():
         neurons.append(neuron)
     return neurons
 
+
 # Get all neurons as list
 def neuronsSigma():
     q = "MATCH (n:Neuron) return n"
@@ -136,20 +141,49 @@ def synapsesD3(neurons, minWeight=1):
 
 
 # Returns subgraph connecting neurons in group1 with neurons in group2
-def subgraph(g1, g2, l=2, w=2, dir='->'):
+def allConsForSet(neurons):
+    #q = "MATCH (n)-[r]-(m) WHERE n.name IN {g} AND m.name IN {g} RETURN DISTINCT r"
+    q = "MATCH (n)-[r]-(m) WHERE n.name IN {g} AND m.name IN {g} RETURN COLLECT(DISTINCT r), COLLECT(DISTINCT n)"
+    res = g.query(q, params={"g":neurons})[0]
+    
+    res_syns = res[0]
+    res_nodes = res[1]
+    synapses = []
+    neurons = []
+    
+    for n in res_nodes:
+        neuron = n['data']
+        neuron['id'] = n['metadata']['id']
+        neurons.append(neuron)
+
+    for syn in res_syns:
+        s = syn['data']
+        s['from'] = int(syn['start'].rsplit("/", 1)[1])
+        s['to'] = int(syn['end'].rsplit("/", 1)[1])
+        s['source'] = [i for i,n in enumerate(neurons) if n['id'] == s['from']][0]
+        s['target'] = [i for i,n in enumerate(neurons) if n['id'] == s['to']][0]
+        s['id'] = syn['metadata']['id']
+        synapses.append(s)
+    
+    return {"synapses":synapses, "neurons":neurons}
+
+
+# Returns subgraph connecting neurons in group1 with neurons in group2
+def subgraph(g1, g2, l=2, ws=2, wj=2, dir='->'):
 
     # q = ("MATCH (n1:Neuron) WHERE n1.group={g1} "
     #      "MATCH (n2:Neuron) WHERE n2.group={g2} ")
     q = ("MATCH (n1:Neuron) WHERE n1.group IN {g1} "
          "MATCH (n2:Neuron) WHERE n2.group IN {g2} ")
     q += "MATCH p=(n1)-[r*1.." + str(l) + "]" + dir + "(n2) "
-    q += "WHERE ALL(c IN r WHERE c.weight >= {w}) "
+    q += "WHERE ALL(c IN r WHERE (c.type='EJ' AND c.weight >= {wj}) OR (c.type<>'EJ' AND c.weight >= {ws})) "
+    #q += "WHERE ALL(c IN r WHERE c.weight >= {ws}) "
     q += ("AND ALL(n in NODES(p) WHERE 1=length(filter(m in NODES(p) WHERE m=n))) "
           "WITH DISTINCT r AS dr, NODES(p) AS ns "
           "UNWIND dr AS udr UNWIND ns AS uns "
           "RETURN COLLECT(DISTINCT udr), COLLECT(DISTINCT uns)")
 
-    parameters = {"g1":g1, "g2":g2, "w":w, "l":l}
+    parameters = {"g1":g1, "g2":g2, "ws":ws, "wj":wj, "l":l}
     print "Querying graph with "
     print q, parameters
     res = g.query(q, params=parameters)[0]

@@ -51,7 +51,7 @@ output {
 }
 
 #fetchbutton, #resetbutton {
-  width: 75px;
+  /*width: 75px;*/
 }
 
 .form-control {

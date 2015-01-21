@@ -25,6 +25,7 @@ var highlightId = -1;
 var showArrow = 0,
     showJunctions = 1,
     showSynapses = 1;
+var fetched = false;
 
 var arcs = false;
 var sqrt3 = 1.7320508075688772;
@@ -632,21 +633,42 @@ function graphReset() {
         updateCrossFilter(data['neurons'], data['synapses']);
         document.getElementById("resetbutton").innerHTML = "Reset";
       });
+    fetched = false;
+    $('#expandbutton').prop('disabled', true);
     return false;
 }
 
+function expand() {
+    if (fetched) {
+        var name_list = nodes.map(function(d) { return d.name; });
+        document.getElementById("expandbutton").innerHTML = '<img id="ajaxloader" src="/static/images/ajax-loader.gif">'
+        $.getJSON($SCRIPT_ROOT + '/_expand', {
+            names: name_list
+          }, function(d) {
+            data = d.result;
+            resetSlider("jmin", jminVal=0);
+            resetSlider("wmin", wminVal=0);
+            resetSlider("ndeg", ndegVal=0);
+            updateCrossFilter(data['neurons'], data['synapses']);
+            document.getElementById("expandbutton").innerHTML = "Expand"
+          });
+    }
+    return false;
+}
 
 function subGraph() {
     var g1 = document.getElementById('group1').value;
     var g2 = document.getElementById('group2').value;
-    var w = document.getElementById('subwslider').value;
+    var ws = document.getElementById('subwslider').value;
+    var wj = document.getElementById('subjslider').value;
     var l = document.getElementById('subpslider').value;
     var dir = $('#dirButton').text();
     document.getElementById("fetchbutton").innerHTML = '<img id="ajaxloader" src="/static/images/ajax-loader.gif">'
     $.getJSON($SCRIPT_ROOT + '/_subgraph', {
         group1: g1,
         group2: g2,
-        minWeight: w,
+        minWeightS: ws,
+        minWeightJ: wj,
         maxLength: l,
         dir: dir
       }, function(d) {
@@ -656,7 +678,9 @@ function subGraph() {
         resetSlider("wmin", wminVal=0);
         resetSlider("ndeg", ndegVal=0);
         updateCrossFilter(data['neurons'], data['synapses']);
-        document.getElementById("fetchbutton").innerHTML = "Fetch!"
+        document.getElementById("fetchbutton").innerHTML = "Fetch"
+        $('#expandbutton').prop('disabled', false);
+        fetched = true;
       });
       return false;
 }

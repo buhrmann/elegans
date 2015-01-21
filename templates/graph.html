@@ -6,7 +6,25 @@
     <div id="graph"></div>
     
      <div class="uiwidget" id="menu-widget">
-      <form>        
+      <form>
+        <div class="formpanel">
+          <h3>Find neuron
+            <small><a href="#nodepanel" data-toggle="collapse" aria-expanded="true" aria-controls="nodepanel">
+            <span class='glyphicon glyphicon-resize-small pull-right'></span>
+            </a></small>
+          </h3>
+          <div id="nodepanel" class="panel-collapse collapse in">
+            <p>
+              <div class="input-group input-group-sm">
+                <input id="search-node" type="text" placeholder="name" value="ASEL" size="4" class="form-control"/>
+                <span class="input-group-btn">
+                  <button type="button" id="snbutton" class="btn btn-default" onclick="searchNode();">Search</button>
+                </span>
+              </div>
+            </p>
+          </div>
+        </div>
+
         <div class="formpanel">
           <h3>Subgraph 
             <small><a href="#subpanel" data-toggle="collapse" aria-expanded="true" aria-controls="subpanel">
@@ -19,7 +37,7 @@
             <div class="input-group input-group-sm">
               <input id="group1" type="search" placeholder="Group" value="ASE" size="4" class="form-control"/>
               <div class="input-group-btn">
-                <button type="button" id="dirButton" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-expanded="false">-></button>
+                <button type="button" id="dirButton" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-expanded="false" title="Choose directed or undirected connections">-></button>
                 <ul class="dropdown-menu" role="menu">
                   <li><a href="#">-></a></li>
                   <li><a href="#">-</a></li>
@@ -30,15 +48,22 @@
           </p>
         
           <div class="form-group">
-            <label for="subwslider">Min weight [1-10]: </label> <output for="subwSlider" id="subwlabel">1</output>
+            <label for="subwslider">Synapse min weight [1-10]: </label> <output for="subwSlider" id="subwlabel">1</output>
             <input type="range" id="subwslider" name="subw" value="1" min="1" max="10" oninput="document.getElementById('subwlabel').value = value;">            
+          </div>
+          <div class="form-group">
+            <label for="subjslider">Junction min weight [1-10]: </label> <output for="subjSlider" id="subjlabel">1</output>
+            <input type="range" id="subjslider" name="subj" value="1" min="1" max="10" oninput="document.getElementById('subjlabel').value = value;">            
           </div>
           <div class="form-group">
             <label for="subpslider">Max path length [1-4]: </label> <output for="subpSlider" id="subplabel">3</output>
             <input type="range" id="subpslider" name="subp" value="3" min="1" max="4" oninput="document.getElementById('subplabel').value = value;">            
           </div>
-          <button id="fetchbutton" class="btn btn-default" type="button" onclick="subGraph();">Fetch!</button>
-          <button id="resetbutton" class="btn btn-default pull-right" type="button" onclick="graphReset();">Reset</button>
+          <div class="btn-group">
+          <button id="fetchbutton" class="btn btn-default" type="button" title="Query subgraph with selected parameters" onclick="subGraph();">Fetch</button>
+          <button id="expandbutton" class="btn btn-default" type="button" title="Fetch ALL connections for fetched subgraph" onclick="expand();" disabled="disabled">Expand</button>
+          <button id="resetbutton" class="btn btn-default pull-right" type="button" title="Return to full network" onclick="graphReset();">Reset</button>
+          </div>
         </div>
         </div>
 
@@ -51,8 +76,8 @@
           <div id="vispanel" class="panel-collapse collapse in">
           Toggle visibility of neurons and synapses.
           <p><div class="btn-group btn-group-sm" id="prune-radio" data-toggle="buttons-radio">
-            <button id="prune1" type="button" data-toggle="button" name="option" value="1" class="btn btn-default active">Prune</button>
-            <button id="prune2" type="button" data-toggle="button" name="option" value="2" class="btn btn-default">Hide</button>
+            <button id="prune1" type="button" data-toggle="button" name="option" value="1" class="btn btn-default active" title="Remove filtered network elements from layout">Prune</button>
+            <button id="prune2" type="button" data-toggle="button" name="option" value="2" class="btn btn-default" title="Make filtered network elements invisible">Hide</button>
           </div></p>
           <div class="form-group" id="ndeg">
             <label for="ndegslider">Node degree [0-200]:</label> <output for="thresholdSlider" id="ndeglabel">2</output>
@@ -73,15 +98,17 @@
             <label><input type="checkbox" onchange="toggleJunctions(this)" checked>Electrical junctions</label>
           </div>
           <div class="checkbox">
-            <label><input type="checkbox" onchange="toggleArrows(this)">Arrows</label>
+            <label title="Indicate directionality"><input type="checkbox" onchange="toggleArrows(this)">Arrows</label>
           </div>
           <div class="checkbox">
-            <label><input type="checkbox" onchange="arcsplease(this)">Arcs</label>
+            <label title="Disambiguate multiple connections between two neurons"><input type="checkbox" onchange="arcsplease(this)">Arcs</label>
           </div>
         </div>
         </div>
       </form>
+    </div>
 
+    <div class="uiwidget" id="node-widget">
       <div class="formpanel">
         <h3>Statistics
           <small><a href="#statpanel" data-toggle="collapse" aria-expanded="true" aria-controls="statpanel">
@@ -89,16 +116,14 @@
           </a></small>
         </h3>
         <div id="statpanel" class="panel-collapse collapse in">
-        <ul class="list-group">
-          <li class="list-group-item"><span class="badge stats-item" id="stats-n">14</span>Neurons</li>
-          <li class="list-group-item"><span class="badge stats-item" id="stats-s">7</span>Chemical synapses</li>
-          <li class="list-group-item"><span class="badge stats-item" id="stats-ej">7</span>Electrical junctions</li>
-        </ul>
+          <ul class="list-group">
+            <li class="list-group-item"><span class="badge stats-item" id="stats-n">14</span>Neurons</li>
+            <li class="list-group-item"><span class="badge stats-item" id="stats-s">7</span>Chemical synapses</li>
+            <li class="list-group-item"><span class="badge stats-item" id="stats-ej">7</span>Electrical junctions</li>
+          </ul>
+        </div>
       </div>
-    </div>
-    </div>
 
-    <div class="uiwidget" id="node-widget">
       <div class="formpanel">
         <h3><span id="node-heading">Node Info</span>
           <small><a href="#nodepanel" data-toggle="collapse" aria-expanded="true" aria-controls="nodepanel">
@@ -107,13 +132,6 @@
         </h3>
         <div id="nodepanel" class="panel-collapse collapse in">
           <p>
-            <div class="input-group input-group-sm">
-              <input id="search-node" type="text" placeholder="name" value="ASEL" size="4" class="form-control"/>
-              <span class="input-group-btn">
-                <button type="button" id="snbutton" class="btn btn-default" onclick="searchNode();">Search</button>
-              </span>
-            </div>
-          </p>
           <span id="nodeinfo"></span>
         </div>
       </div>

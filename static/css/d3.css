@@ -23,8 +23,9 @@ body {
 .uiwidget {
   position: absolute;
   top: 20px;
-  width: 310px;
   overflow: hidden;
+  width: 310px;
+  pointer-events: none !important;
   -webkit-transition: all 0.3s ease;
   -moz-transition: all 0.3s ease;
   transition: all 0.3s ease;
@@ -36,6 +37,7 @@ body {
   top: 0px;
   height: 40px;
   padding: 10px;
+  pointer-events: auto;
 }
 
 .uihandle-left {
@@ -68,6 +70,7 @@ body {
 
 .uiwidget .handlelabel {
   display: none;
+
 }
 
 
@@ -92,15 +95,19 @@ output {
   background-color: rgba(255, 255, 255, 0.75);
   padding: 10px;
   margin-bottom: 10px;
-  /*border-radius: 10px;*/
+  pointer-events: auto;
+  border-bottom-left-radius: 10px;
+  border-bottom-right-radius: 10px;
 }
 
 .uiwidget-left .formpanel {
   float: left;
+  border-top-left-radius: 10px;
 }
 
 .uiwidget-right .formpanel {
   float: right;
+  border-top-right-radius: 10px;
 }
 
 #fetchbutton, #resetbutton {

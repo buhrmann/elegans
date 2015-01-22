@@ -1,31 +1,75 @@
-body {
+@import url(https://fonts.googleapis.com/css?family=Merriweather:300,400,700,900,300italic,400italic,700italic]);
+
+body {  
   background-color: #eee;
   margin: 0;  
-  font-size: 12px;
+  font-size: 12px;  
+  padding-bottom: 0px;
+  margin-bottom: 0px;
+  overflow: hidden;
 }
+
+/*body h3 {
+  font-family: "Merriweather", "PT Serif", Georgia, serif;
+*/}
 
 #graph {
   display: block; 
+  position: absolute;
   width: 100%; 
   margin: 0 auto;
 }
 
-.uiwidget {        
-  width: 220px;
-  /*font-size: 12px;*/
+.uiwidget {
+  position: absolute;
+  top: 20px;
+  width: 310px;
+  overflow: hidden;
+  -webkit-transition: all 0.3s ease;
+  -moz-transition: all 0.3s ease;
+  transition: all 0.3s ease;
 }
 
-#menu-widget {
-  position:absolute;
-  top: 20px;
-  left: 20px;  
+.uihandle {
+  background-color: rgba(255, 255, 255, 0.75);
+  position: relative;
+  top: 0px;
+  height: 40px;
+  padding: 10px;
 }
 
-#node-widget {
-  position: fixed;
-  top: 20px;
-  right: 20px;
+.uihandle-left {
+  float:left;
 }
+
+.uihandle-right {
+  float:right;
+}
+
+.uihandle a {
+  text-decoration: none;
+}
+
+.uiwidget-left {
+  left: -210px;  
+}
+
+.uiwidget-left.out {
+  left: 10px;
+}
+
+.uiwidget-right {
+  right: -210px;
+}
+
+.uiwidget-right.out {
+  right: 10px;
+}
+
+.uiwidget .handlelabel {
+  display: none;
+}
+
 
 .uiwidget h3 {
   margin-top: 0px;
@@ -44,10 +88,19 @@ output {
 }
 
 .formpanel {
+  width: 220px;
   background-color: rgba(255, 255, 255, 0.75);
   padding: 10px;
   margin-bottom: 10px;
-  border-radius: 10px;
+  /*border-radius: 10px;*/
+}
+
+.uiwidget-left .formpanel {
+  float: left;
+}
+
+.uiwidget-right .formpanel {
+  float: right;
 }
 
 #fetchbutton, #resetbutton {

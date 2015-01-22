@@ -4,9 +4,8 @@
 
   {% if data %}
     <div id="graph"></div>
-    
-     <div class="uiwidget" id="menu-widget">
-      <form>
+
+    <div class="uiwidget uiwidget-left out" id="left-widget">
         <div class="formpanel">
           <h3>Find neuron
             <small><a href="#searchpanel" data-toggle="collapse" aria-expanded="true" aria-controls="nodepanel">
@@ -23,6 +22,12 @@
               </div>
             </p>
           </div>
+        </div>
+        <div class="uihandle uihandle-left" id="lefthandle">
+          <a href="#">
+            <span class="handlelabel">Controls</span> 
+            <span class='glyphicon glyphicon-chevron-left'></span>
+          </a>            
         </div>
 
         <div class="formpanel">
@@ -118,10 +123,9 @@
           </div>
         </div>
         </div>
-      </form>
     </div>
 
-    <div class="uiwidget" id="node-widget">
+    <div class="uiwidget uiwidget-right out" id="right-widget">
       <div class="formpanel">
         <h3>Statistics
           <small><a href="#statpanel" data-toggle="collapse" aria-expanded="true" aria-controls="statpanel">
@@ -135,6 +139,12 @@
             <li class="list-group-item"><span class="badge stats-item" id="stats-ej">7</span>Electrical junctions</li>
           </ul>
         </div>
+      </div>
+      <div class="uihandle uihandle-right" id="righthandle">
+        <a href="#">
+          <span class='glyphicon glyphicon-chevron-right'></span>
+          <span class="handlelabel"> Info</span>
+        </a>
       </div>
 
       <div class="formpanel">
@@ -202,6 +212,31 @@
 
     $(".btn").mouseup(function(){
       $(this).blur();
+    });
+
+    $("#lefthandle").click(function() {
+      $("#left-widget").toggleClass("out");      
+      var s = $("#lefthandle").find("span.glyphicon");
+      if (s.hasClass("glyphicon-chevron-right")) {
+        s.removeClass("glyphicon-chevron-right").addClass("glyphicon-chevron-left");
+        $("#lefthandle").find("a span.handlelabel").css("display", "none");
+      }
+      else {
+        s.removeClass("glyphicon-chevron-left").addClass("glyphicon-chevron-right");
+        $("#lefthandle").find("a span.handlelabel").css("display", "inline");
+      }
+    });
+    $("#righthandle").click(function() {
+      $("#right-widget").toggleClass("out");
+      var s = $("#righthandle").find("span.glyphicon");
+      if (s.hasClass("glyphicon-chevron-right")) {
+        s.removeClass("glyphicon-chevron-right").addClass("glyphicon-chevron-left");
+        $("#righthandle").find("a span.handlelabel").css("display", "inline");
+      }
+      else {
+        s.removeClass("glyphicon-chevron-left").addClass("glyphicon-chevron-right");
+        $("#righthandle").find("a span.handlelabel").css("display", "none");
+      }
     });
 
   }); 

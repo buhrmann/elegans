@@ -18,13 +18,46 @@
   </head>
 
   <body>
-    <!-- <div id="container">
-     -->  <div id="row1">
     {% block content %}
     {% endblock %}
-    <!--   </div>
+    <div class="topwrapper out">
+      <div class="introheader">
+        <h3>Elegans - a connectome explorer for the nematode worm <em>C. elegans</em></h3>
+        <p>
+          The adult C. elegans hermaphrodite has 302 neurons that belong to two distinct and independent nervous systems: a large somatic nervous system (282 neurons) and a small pharyngeal nervous system (20 neurons). This app allows for the exploration of the connectivity between the 279 somatic neurons whose interconnections are best established.
+        </p>
+        
+        <h4>Usage</h4>
+        <h5>Manipulation of neurons in the network view</h5>
+        <p>
+          <dl class="dl-horizontal" style="text-align: left">
+            <dt>Hover</dt>
+            <dd>Highlights first-degree neighbourhood of hovered neuron.</dd>
+            <dt>Click</dt>
+            <dd>Shows neuron metadata in the Neuron panel on the right. The selected neuron will be indicated by a dashed outline.</dd>
+            <dt>Drag</dt>
+            <dd>Manually moves and pins a neuron to a specific position. Pinned neurons are indicated with a solid black outline.</dd>
+            <dt>Dbl-click</dt>
+            <dd>Releases a pinned neuron.</dd>
+          </dl>
+          In addition, dragging or swiping the background moves and zooms the network view respectively.
+        </p>
+        <h5>UI controls</h5>
+        <p>
+          The panels on the left control which part of the full network is currently available (Subgraph panel), and which elements of the network are visible (Visibility panel). It also allows you to find a single neuron by name.
+        </p>
+        <h5>Information panels</h5>
+        <p>
+          The UI panels on the right display information about the currently visible network as well as individual nodes. It also offers a means to export the current network in various formats.
+        </p>
+      </div>
+      <div class="uihandle uihandle-top" id="tophandle">
+        <a href="#">
+          <span class='glyphicon glyphicon-chevron-up'></span>
+        </a>            
+      </div>
     </div>
- -->
+    
     {% block js_footer %}
       <script type='text/javascript' src="https://code.jquery.com/jquery-2.1.3.min.js"> </script>
       <script type='text/javascript' src="https://code.jquery.com/ui/1.11.2/jquery-ui.min.js"> </script>

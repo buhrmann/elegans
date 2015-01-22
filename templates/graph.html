@@ -5,7 +5,7 @@
   {% if data %}
     <div id="graph"></div>
 
-    <div class="uiwidget uiwidget-left out" id="left-widget">
+    <div class="uiwidget uiwidget-left" id="left-widget">
         <div class="formpanel">
           <h3>Find neuron
             <small><a href="#searchpanel" data-toggle="collapse" aria-expanded="true" aria-controls="nodepanel">
@@ -26,7 +26,7 @@
         <div class="uihandle uihandle-left" id="lefthandle">
           <a href="#">
             <span class="handlelabel">Controls</span> 
-            <span class='glyphicon glyphicon-chevron-left'></span>
+            <span class='glyphicon glyphicon-chevron-right'></span>
           </a>            
         </div>
 
@@ -37,7 +37,7 @@
             </a></small>
           </h3>
           <div id="subpanel" class="panel-collapse collapse in">
-          Choose two neuron groups to see the subgraph connecting them (given minimum connection weight and path length).
+          Choose two neuron groups and find the subgraph connecting them.
           <p>
             <div class="input-group input-group-sm">
               <input id="group1" type="search" placeholder="Group1" value="ASE" size="4" class="form-control"/>
@@ -68,7 +68,7 @@
           <p>            
             <div class="dropdown">
               <label for="presetButton" style="width:100%">Or simply select a preset:</label>
-              <button class="btn btn-default btn-block dropdown-toggle" type="button" id="presetButton" data-toggle="dropdown" aria-expanded="true">
+              <button class="btn btn-default btn-sm btn-block dropdown-toggle" type="button" id="presetButton" data-toggle="dropdown" aria-expanded="true">
                 Presets
                 <span class="caret"></span>
               </button>
@@ -77,10 +77,10 @@
             </div>
           </p>
 
-          <div class="btn-group">
-          <button id="fetchbutton" class="btn btn-default" type="button" title="Query subgraph with selected parameters" onclick="subGraph();">Fetch</button>
-          <button id="expandbutton" class="btn btn-default" type="button" title="Fetch ALL connections for fetched subgraph" onclick="expand();" disabled="disabled">Expand</button>
-          <button id="resetbutton" class="btn btn-default pull-right" type="button" title="Return to full network" onclick="graphReset();">Reset</button>
+          <div class="btn-group btn-group-justified btn-group-sm" role="group">
+              <a href="#" id="fetchbutton" class="btn btn-default btn-sm" type="button" title="Query subgraph with selected  parameters" onclick="subGraph();">Fetch</a>
+              <a href="#" id="expandbutton" class="btn btn-default disabled" type="button" title="Fetch ALL connections for fetched subgraph" onclick="expand();">Expand</a>
+              <a href="#" id="resetbutton" class="btn btn-default" type="button" title="Return to full network" onclick="graphReset();">Reset</a>
           </div>
         </div>
         </div>
@@ -92,10 +92,12 @@
             </a></small>
           </h3>
           <div id="vispanel" class="panel-collapse collapse in">
-          Toggle visibility of neurons and synapses.
-          <p><div class="btn-group btn-group-sm" id="prune-radio" data-toggle="buttons-radio">
-            <button id="prune1" type="button" data-toggle="button" name="option" value="1" class="btn btn-default active" title="Remove filtered network elements from layout">Prune</button>
-            <button id="prune2" type="button" data-toggle="button" name="option" value="2" class="btn btn-default" title="Make filtered network elements invisible">Hide</button>
+          Select which neurons and synapses to display.
+          <p><div class="btn-group btn-group-sm btn-group-justified" id="prune-radio" data-toggle="buttons-radio">
+            <!-- <button id="prune1" type="button" data-toggle="button" name="option" value="1" class="btn btn-default active" title="Remove filtered network elements from layout">Prune</button>
+            <button id="prune2" type="button" data-toggle="button" name="option" value="2" class="btn btn-default" title="Make filtered network elements invisible">Hide</button> -->
+            <a href="#" id="prune1" type="button" data-toggle="button" name="option" value="1" class="btn btn-default active" title="Remove filtered network elements from layout">Prune</a>
+            <a hre="#" id="prune2" type="button" data-toggle="button" name="option" value="2" class="btn btn-default" title="Make filtered network elements invisible">Hide</a>
           </div></p>
           <div class="form-group" id="ndeg">
             <label for="ndegslider">Node degree [0-200]:</label> <output for="thresholdSlider" id="ndeglabel">2</output>
@@ -125,7 +127,7 @@
         </div>
     </div>
 
-    <div class="uiwidget uiwidget-right out" id="right-widget">
+    <div class="uiwidget uiwidget-right" id="right-widget">
       <div class="formpanel">
         <h3>Statistics
           <small><a href="#statpanel" data-toggle="collapse" aria-expanded="true" aria-controls="statpanel">
@@ -133,8 +135,8 @@
           </a></small>
         </h3>
         <div id="statpanel" class="panel-collapse collapse in">
-          <ul class="list-group">
-            <li class="list-group-item"><span class="badge stats-item" id="stats-n">14</span>Neurons</li>
+          <ul class="list-group list-group-sm">
+            <li class="list-group-item"><span class="badge badge-sm stats-item" id="stats-n">14</span>Neurons</li>
             <li class="list-group-item"><span class="badge stats-item" id="stats-s">7</span>Chemical synapses</li>
             <li class="list-group-item"><span class="badge stats-item" id="stats-ej">7</span>Electrical junctions</li>
           </ul>
@@ -142,7 +144,7 @@
       </div>
       <div class="uihandle uihandle-right" id="righthandle">
         <a href="#">
-          <span class='glyphicon glyphicon-chevron-right'></span>
+          <span class='glyphicon glyphicon-chevron-left'></span>
           <span class="handlelabel"> Info</span>
         </a>
       </div>
@@ -165,7 +167,7 @@
           </a></small>
         </h3>
         <div id="exppanel" class="panel-collapse collapse in">
-          <a href="{{url_for('export')}}" target="_blank" class="btn btn-default" role="button" title="Export current graph">Export</a>
+          <a href="{{url_for('export')}}" target="_blank" class="btn btn-sm btn-default" role="button" title="Export current graph">Export</a>
         </div>
       </div>
 
@@ -182,7 +184,7 @@
   // Register event handlers right here
   $(function() {
 
-    $('#prune-radio button').click(function() {
+    $('#prune-radio a').click(function() {
       $(this).addClass('active').siblings().removeClass('active'); 
     });
 
@@ -215,27 +217,57 @@
     });
 
     $("#lefthandle").click(function() {
-      $("#left-widget").toggleClass("out");      
-      var s = $("#lefthandle").find("span.glyphicon");
-      if (s.hasClass("glyphicon-chevron-right")) {
-        s.removeClass("glyphicon-chevron-right").addClass("glyphicon-chevron-left");
-        $("#lefthandle").find("a span.handlelabel").css("display", "none");
-      }
-      else {
-        s.removeClass("glyphicon-chevron-left").addClass("glyphicon-chevron-right");
-        $("#lefthandle").find("a span.handlelabel").css("display", "inline");
-      }
+      toggleLeftPanel();
     });
+
     $("#righthandle").click(function() {
-      $("#right-widget").toggleClass("out");
+      toggleRightPanel();
+    });
+
+    toggleLeftPanel = function(visible) {
+      var s = $("#lefthandle").find("span.glyphicon");
+      var visnow = s.hasClass("glyphicon-chevron-left");
+      if (visible===undefined || (visible!=visnow)) {
+        $("#left-widget").toggleClass("out");
+        if (!visnow) {
+          s.removeClass("glyphicon-chevron-right").addClass("glyphicon-chevron-left");
+          $("#lefthandle").find("a span.handlelabel").css("display", "none");
+        }
+        else {
+          s.removeClass("glyphicon-chevron-left").addClass("glyphicon-chevron-right");
+          $("#lefthandle").find("a span.handlelabel").css("display", "inline");
+        }
+      }
+    }
+
+    toggleRightPanel = function(visible) {
       var s = $("#righthandle").find("span.glyphicon");
-      if (s.hasClass("glyphicon-chevron-right")) {
-        s.removeClass("glyphicon-chevron-right").addClass("glyphicon-chevron-left");
-        $("#righthandle").find("a span.handlelabel").css("display", "inline");
+      var visnow = s.hasClass("glyphicon-chevron-right");
+      if (visible===undefined || (visible!=visnow)) {
+        $("#right-widget").toggleClass("out");
+        if (visnow) {
+          s.removeClass("glyphicon-chevron-right").addClass("glyphicon-chevron-left");
+          $("#righthandle").find("a span.handlelabel").css("display", "inline");
+        }
+        else {
+          s.removeClass("glyphicon-chevron-left").addClass("glyphicon-chevron-right");
+          $("#righthandle").find("a span.handlelabel").css("display", "none");
+        }
+      }
+    }    
+
+    $("#tophandle").click(function() {
+      $(".topwrapper").toggleClass("out");
+      var s = $("#tophandle").find("span.glyphicon");
+      if (s.hasClass("glyphicon-chevron-up")) {
+        s.removeClass("glyphicon-chevron-up").addClass("glyphicon-chevron-down");
+        toggleLeftPanel(true);
+        toggleRightPanel(true);
       }
       else {
-        s.removeClass("glyphicon-chevron-left").addClass("glyphicon-chevron-right");
-        $("#righthandle").find("a span.handlelabel").css("display", "none");
+        s.removeClass("glyphicon-chevron-down").addClass("glyphicon-chevron-up");
+        toggleLeftPanel(false);
+        toggleRightPanel(false);
       }
     });
 

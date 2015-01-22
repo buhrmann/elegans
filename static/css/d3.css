@@ -1,23 +1,66 @@
 @import url(https://fonts.googleapis.com/css?family=Merriweather:300,400,700,900,300italic,400italic,700italic]);
 
 body {  
-  background-color: #eee;
+  background-color: #fff;
   margin: 0;  
-  font-size: 12px;  
+  font-size: 11px;  
   padding-bottom: 0px;
   margin-bottom: 0px;
   overflow: hidden;
 }
 
-/*body h3 {
-  font-family: "Merriweather", "PT Serif", Georgia, serif;
-*/}
+.badge {
+  font-size: inherit;
+}
+
+.dl-horizontal dt {
+  width: 60px;
+}
+.dl-horizontal dd {
+  margin-left: 80px;
+}
 
 #graph {
   display: block; 
   position: absolute;
+  /*top: 100px;*/
   width: 100%; 
   margin: 0 auto;
+}
+
+.topwrapper {
+  position: fixed;
+  top: -590px;
+  width: 500px;
+  height: 600px;
+  left: 50%;
+  -webkit-transform: translate(-50%, 0);  
+  -moz-transform: translate(-50%, 0);
+  transform: translate(-50%, 0);  
+
+  -webkit-transition: all 0.3s ease;
+  -moz-transition: all 0.3s ease;
+  transition: all 0.3s ease;
+}
+
+.topwrapper.out {
+  top: 0px;
+}
+
+.introheader { 
+  position: relative;
+  font-size: 12px;
+  /*text-align: justify;*/
+  height: 600px;
+  background-color: rgba(245, 245, 245, 0.95);
+  padding: 10px 20px 10px 20px;
+  border-bottom-left-radius: 10px;
+  border-bottom-right-radius: 10px;
+}
+
+.introheader, 
+.introheader h3, h4, h5 {
+  font-family: "Merriweather", "PT Serif", Georgia, serif;
 }
 
 .uiwidget {
@@ -31,51 +74,70 @@ body {
   transition: all 0.3s ease;
 }
 
-.uihandle {
-  background-color: rgba(255, 255, 255, 0.75);
+.uihandle {  
+  background-color: rgba(245, 245, 245, 0.75);
   position: relative;
-  top: 0px;
-  height: 40px;
   padding: 10px;
   pointer-events: auto;
+  font-size: 14px;
+}
+
+.uihandle a,
+h3 a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.uihandle a:hover,
+h3 a:hover {
+  color: #f00;
+}
+
+.uihandle-top {
+  width: 50px;
+  height: 30px;
+  left: 50%;
+  text-align: center;
+  vertical-align: top;
+  background-color: rgba(245, 245, 245, 0.95);
+  -webkit-transform: translate(-50%, 0);
+  -moz-transform: translate(-50%, 0);
+  transform: translate(-50%, 0);
 }
 
 .uihandle-left {
   float:left;
+  height: 40px;
 }
 
 .uihandle-right {
   float:right;
-}
-
-.uihandle a {
-  text-decoration: none;
+  height: 40px;
 }
 
 .uiwidget-left {
-  left: -210px;  
+  left: -180px;  
 }
 
 .uiwidget-left.out {
-  left: 10px;
+  left: 0px;
 }
 
 .uiwidget-right {
-  right: -210px;
+  right: -180px;
 }
 
 .uiwidget-right.out {
-  right: 10px;
+  right: 0px;
 }
 
 .uiwidget .handlelabel {
-  display: none;
-
+  display: inline;
 }
-
 
 .uiwidget h3 {
   margin-top: 0px;
+  font-size: 20px;
 }
 
 input[type=range]{
@@ -91,31 +153,24 @@ output {
 }
 
 .formpanel {
-  width: 220px;
-  background-color: rgba(255, 255, 255, 0.75);
+  width: 190px;
+  background-color: rgba(245, 245, 245, 0.75);
   padding: 10px;
   margin-bottom: 10px;
-  pointer-events: auto;
-  border-bottom-left-radius: 10px;
-  border-bottom-right-radius: 10px;
-}
+  pointer-events: auto;}
 
 .uiwidget-left .formpanel {
   float: left;
-  border-top-left-radius: 10px;
+  border-bottom-right-radius: 10px;
 }
 
 .uiwidget-right .formpanel {
   float: right;
-  border-top-right-radius: 10px;
+  border-bottom-left-radius: 10px;
 }
 
-#fetchbutton, #resetbutton {
-  /*width: 75px;*/
-}
-
-.form-control {
-  /*background: rgba(255,255,255,0.5);*/
+.btn-group-justified .btn {
+  width: auto;
 }
 
 svg {

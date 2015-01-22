@@ -701,7 +701,8 @@ function graphReset() {
         document.getElementById("resetbutton").innerHTML = "Reset";
       });
     fetched = false;
-    $('#expandbutton').prop('disabled', true);
+    //$('#expandbutton').prop('disabled', true);
+    $('#expandbutton').toggleClass('disabled', true);
     return false;
 }
 
@@ -746,7 +747,8 @@ function subGraph() {
         setSlider("ndeg", ndegVal=0);
         updateCrossFilter(data['neurons'], data['synapses']);
         document.getElementById("fetchbutton").innerHTML = "Fetch"
-        $('#expandbutton').prop('disabled', false);
+        //$('#expandbutton').prop('disabled', false);
+        $('#expandbutton').toggleClass('disabled', false);
         fetched = true;
       });
       return false;

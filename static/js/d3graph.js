@@ -318,7 +318,7 @@ function showPopover(d, dir) {
 }
 
 function removeNodeInfo() {
-    document.getElementById("nodeinfo").innerHTML = "";
+    document.getElementById("nodeinfo").innerHTML = "Click to select...";
     document.getElementById("node-heading").innerHTML = "";
 }
 

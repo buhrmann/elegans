@@ -16,6 +16,17 @@ app.config.from_object(__name__)
 n_cache = []
 s_cache = []
 
+
+@app.route('/about')
+def about():
+    return render_template('about.html')
+
+
+@app.route('/discuss')
+def discuss():
+    return render_template('discuss.html')
+
+
 @app.route('/build')
 def build():
     neo.dbAddNeurons(True)

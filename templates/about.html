@@ -1,0 +1,37 @@
+{% extends "base.html" %}  
+  
+  
+{% block content %}
+<section id="content" class="content">
+  
+  <h2>
+    Elegans - a connectome explorer for the nematode worm <em>C. elegans</em>
+  </h2>
+  
+  <p>
+    The adult C. elegans hermaphrodite worm has 302 neurons that belong to two distinct and independent nervous systems: a large somatic nervous system (282 neurons) and a small pharyngeal nervous system (20 neurons). <em>Elegans</em> allows for the exploration of the connectivity between the 279 somatic neurons whose interconnections are best established.
+  </p>
+
+  <h3><span class="fa fa-table"></span>Data sources</h3>
+  <p>
+    The connectome presented here is based mostly on data first discussed by Chen et al. (2006), a full analysis of which can be found in a more recent publication by Varshney et al. (2011). This data is made available on the <a href="http://www.wormatlas.org/neuronalwiring.html">connectivity pages of the Worm Atlas</a>...
+  </p>
+
+  <h3><span class="fa fa-database"></span>Database</h3>
+  <p>
+    The preprocessed connectome is maintained in Neo4j, a graph database in which nodes and edges are stored along with their meta-information. Neo4j offers a powerful query language (cypher) that is used here to find subgraphs of the full connectome...
+  </p>
+
+  <h3><img src="{{ url_for('static', filename='images/molecule.svg') }}" width="28", height="28">Visualization</h3>
+  <p>
+    The network visualization of the connectome is done entirely with d3.js, a client-side javascript framework for producing interactive visualizations in the browser...
+  </p>
+
+  <h3>References</h3>
+  <ol class="bib">
+    <li>Chen, Hall, and Chklovskii (2006). <em>Wiring optimization can relate neuronal structrure and function.</em> PNAS 103: 4723-4728 (<a target="_blank" href="http://dx.doi.org/10.1073/pnas.0506806103">doi:10.1073/pnas.0506806103</a>).</li>
+    <li>Varshney, Chen, Paniaqua, Hall and Chklovskii (2011). <em>Structural properties of the C. elegans neuronal network.</em> PLoS Comput. Biol. 3:7:e1001066 (<a target="_blank" href="http://dx.doi.org/10.1371/journal.pcbi.1001066">doi:10.1371/journal.pcbi.1001066</a>).</li>
+  </ol>
+  
+</section>
+{% endblock %}

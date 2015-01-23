@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    {% block head %}
+      <title>{% block title %}Elegans{% endblock %}</title>      
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="description" content="A C. elegans connectome explorer / neural network visualization">
+      <meta name="keywords" content="C. elegans, nematode, explorer, visualization, network, graph, neural, nervous system, brain, connectome">
+      <meta name="author" content="Thomas Buhrmann">
+      <link rel="stylesheet" type='text/css' href="{{ url_for('static', filename='css/bootstrap-custom.css') }}">
+      <link rel="stylesheet" type='text/css' href="{{ url_for('static', filename='css/style.css') }}">
+      <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" >
+      <link rel="shortcut icon" href="{{ url_for('static', filename='images/worm-32.png') }}"> 
+      <script type=text/javascript>$SCRIPT_ROOT = {{ request.script_root|tojson|safe }}; </script>
+    {% endblock %}
+  </head>
+
+  <body>    
+    <!-- Header -->
+    <div class="container-fluid">
+      <div class="header">
+        <div class="container">
+          <nav class="navbar navbar-default navbar-fixed-top" role="navigation">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target=".navbar-collapse">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              <a class="navbar-brand" href="{{ url_for('index') }}">
+                <!-- <img src="{{url_for('static', filename='images/icon.png')}}" width="16" height="16"> -->
+               Elegans
+              </a>
+            </div>
+            <div class="navbar-collapse collapse">
+              <ul class="nav navbar-nav">
+                <li><a href="{{ url_for('index') }}">Explorer</a></li>
+                <li><a href="{{ url_for('about') }}">About</a></li>                                
+                <li><a href="{{ url_for('discuss') }}">Discuss</a></li>
+              </ul>
+            </div>
+          </nav>
+        </div>
+      </div>
+    </div><!-- Header -->
+
+    {% block mainwrapper %}
+    <div class="container main-content">     
+      <div class="row row-centered">
+        <div class="col-centered col-max col-min col-sm-12 col-md-10 col-lg-10 main-content">
+          {% block content %}{% endblock %}
+        </div>
+      </div>
+    </div><!-- container -->
+    {% endblock %}
+
+    <!-- footer -->
+    <div class="container-fluid aw-footer"> 
+      <div class="row-centered">
+        <div class="col-sm-3 col-sm-offset-1">
+          <h4>Author</h4>
+          <ul class="list-unstyled my-list-style">
+            <li><a href="https://synergenz.github.io/">Homepage</a></li>
+            <li><a href="http://www.ias-research.net/people/thomas-buhrmann/">Academic Home</a></li>
+            <li><a href="http://github.com/synergenz">Github</a></li>
+            <li><a href="http://www.linkedin.com/in/thomasbuhrmann">LinkedIn</a></li>
+          </ul>
+        </div>
+        <div class="col-sm-3">
+          <h4>Links</h4>
+          <ul class="list-unstyled my-list-style">
+            <li><a href="https://en.wikipedia.org/wiki/Caenorhabditis_elegans">C. elegans</a></li>
+            <li><a href="http://www.wormatlas.org/">Worm Atlas</a></li>
+            <li><a href="http://www.openworm.org/">Open Worm</a></li>
+            <li><a href="http://wormweb.org/neuralnet#c=BAG&m=1">Worm Web</a></li>                        
+          </ul>
+        </div>
+        <div class="col-sm-3">
+          <h4>Tags</h4>
+          <ul class="tagcloud">
+            {% for tag in tag_cloud %}
+            <li class="tag-{{ tag.1 }}"><a href="{{ SITEURL }}/{{ tag.0.url }}">{{ tag.0 }}</a></li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    {% block js_footer %}
+    <script type='text/javascript' src="https://code.jquery.com/jquery-2.1.3.min.js"> </script>
+    <script type="text/javascript" src={{url_for('static', filename='js/bootstrap.min.js')}}></script>
+      <script>
+        (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+        })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+        ga('create', 'UA-58616029-1', 'auto');
+        ga('send', 'pageview');
+      </script>    
+    {% endblock %}    
+  </body>
+</html>

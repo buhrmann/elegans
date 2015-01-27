@@ -31,6 +31,35 @@ h2 img {
   float: left;
 }
 
+.jumbo-bg {
+  /*background: url('/static/images/elegans-scan.jpg') no-repeat center center;*/
+  background: linear-gradient(to bottom, rgba(255,255,255,0.2) 0%,rgba(255,255,255,0.6) 100%), url("/static/images/worm.jpg") no-repeat center center, #000;
+  background-size: auto 100%;
+  position: fixed;
+  width: 100%;
+  height: 300px;
+  top: 52px;
+  left: 0;
+  z-index: -1;
+  /*border-bottom: 1px solid #000;*/
+}
+
+.jumbotron {
+  height: 300px;
+  color: white;
+  background: transparent;
+  margin-bottom: 0px;
+}
+
+.jumbotron h1 {
+  /*text-shadow: -1px 0 black, 0 1px black, 1px 0 black, 0 -1px black;*/
+}
+
+.jumbotron .lead {
+  color: #fff;
+}
+
+
 .navbar,
 .navbar-default{
     border-top-color: #98B1C4;
@@ -39,7 +68,10 @@ h2 img {
 }
 
 .container{
-    max-width:100%
+    width: 100%;
+    max-width: 100%;
+    background-color: #fff;
+    border-top: 1px solid;
 }
 
 .content {
@@ -291,20 +323,9 @@ li.tag-2 {
 /* Main marketing message and sign up button */
 .jumbotron {
   text-align: center;
-  border-bottom: 1px solid #e5e5e5;
-}
-.jumbotron .btn {
-  font-size: 21px;
-  padding: 14px 24px;
 }
 
-/* Supporting marketing content */
-.marketing {
-  margin: 40px 0;
-}
-.marketing p + h4 {
-  margin-top: 28px;
-}
+
 .header .text-muted  a{
     color:#999;
     text-decoration:none;

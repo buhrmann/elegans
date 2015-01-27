@@ -23,7 +23,10 @@
       <div class="introheader">
         <h3>Elegans - a connectome explorer for the nematode worm <em>C. elegans</em></h3>
         <p>
-          The adult C. elegans hermaphrodite has 302 neurons that belong to two distinct and independent nervous systems: a large somatic nervous system (282 neurons) and a small pharyngeal nervous system (20 neurons). This app allows for the exploration of the connectivity between the 279 somatic neurons whose interconnections are best established.
+          Elegans is a tool that allows visual and interactive exploration of the connectome of <em>C. elegans</em>. In its current form its main purpose is to give researchers interested in modelling a specific worm behaviour the tool to extract subcircuits that may underlie the behaviour in question.
+        </p>
+        <p>
+          For background information about this app see the <a href="{{ url_for('about')}}">About section</a>.
         </p>
         
         <h4>Usage</h4>
@@ -43,7 +46,11 @@
         </p>
         <h5>UI controls</h5>
         <p>
-          The panels on the left control which part of the full network is currently available (Subgraph panel), and which elements of the network are visible (Visibility panel). It also allows you to find a single neuron by name.
+          The panels on the left control which part of the full network is currently available in the browser (Subgraph panel), and which elements of the network are currently visible (Visibility panel). It also allows you to find a single neuron by name. 
+        </p>
+        <h5>Extracting a subcircuit</h5>
+        <p>
+          First choose two or more neuron groups in the Subgraph panel. Select whether you care about the direction of connectivity (e.g. from sensory to motor neurons), or whether you require all bidirectional paths. Then choose filter settings to constrain the subcircuits maximal path lengths (longer is more costly) and minimum number of synapses per connection. Now Fetch the results. In order to then add back in all existing connections between the returned neurons (irrespective of filter settings), click Expand. 
         </p>
         <h5>Information panels</h5>
         <p>

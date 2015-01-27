@@ -31,8 +31,8 @@ body {
 .topwrapper {
   position: fixed;
   top: -640px;
-  width: 500px;
-  height: 650px;
+  width: 600px;
+  height: 700px;
   left: 50%;
   -webkit-transform: translate(-50%, 0);  
   -moz-transform: translate(-50%, 0);

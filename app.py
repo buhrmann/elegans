@@ -35,7 +35,6 @@ def build():
 
 
 @app.route('/')
-@app.route('/graph')
 def index():
     global n_cache, s_cache
     n_cache = neo.neurons()

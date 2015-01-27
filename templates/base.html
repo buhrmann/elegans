@@ -36,8 +36,7 @@
             </div>
             <div class="navbar-collapse collapse">
               <ul class="nav navbar-nav">
-                <li><a href="{{ url_for('index') }}">Explorer</a></li>
-                <li><a href="{{ url_for('about') }}">About</a></li>                                
+                <li><a href="{{ url_for('about') }}">About</a></li>
                 <li><a href="{{ url_for('discuss') }}">Discuss</a></li>
               </ul>
             </div>
@@ -47,6 +46,8 @@
     </div><!-- Header -->
 
     {% block mainwrapper %}
+    {% block jumbo %}
+    {% endblock %}
     <div class="container main-content">     
       <div class="row row-centered">
         <div class="col-centered col-max col-min col-sm-12 col-md-10 col-lg-10 main-content">

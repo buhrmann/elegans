@@ -30,9 +30,9 @@ body {
 
 .topwrapper {
   position: fixed;
-  top: -690px;
+  top: -710px;
   width: 600px;
-  height: 700px;
+  height: 720px;
   left: 50%;
   -webkit-transform: translate(-50%, 0);  
   -moz-transform: translate(-50%, 0);

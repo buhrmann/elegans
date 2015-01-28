@@ -9,101 +9,113 @@ SECRET_KEY = 'A0Zr98j/3yX R~XHH!jmN]LWX/,?RT'
 USER_NAME = 'syngnz'
 PASSWORD = 'inform'
 
-app = Flask(__name__)
-app.config.from_object(__name__)
+APP = Flask(__name__)
+APP.config.from_object(__name__)
 
 # Cache the results on server
-n_cache = []
-s_cache = []
+NODE_CACHE = []
+REL_CACHE = []
 
 
-@app.route('/about')
+@APP.route('/about')
 def about():
     return render_template('about.html')
 
 
-@app.route('/discuss')
+@APP.route('/discuss')
 def discuss():
     return render_template('discuss.html')
 
 
-@app.route('/build')
+@APP.route('/build')
 def build():
-    neo.dbAddNeurons(True)
-    neo.dbAddSynapses(False)
+    neo.db_add_neurons(clear=True)
+    neo.db_add_synapses(clear=False)
     return redirect(url_for('index'))
 
 
-@app.route('/')
+@APP.route('/')
 def index():
-    global n_cache, s_cache
-    n_cache = neo.neurons()
-    s_cache = neo.synapsesD3(n_cache, 0)
-    d = {'neurons':n_cache, 'synapses':s_cache}
-    j = json.dumps(d)
-    return render_template('graph.html', data=j)
+    global NODE_CACHE, REL_CACHE
+    NODE_CACHE = neo.neurons()
+    REL_CACHE = neo.synapses_d3(NODE_CACHE, min_weight=0)
+    jsn = json.dumps({'neurons':NODE_CACHE, 'synapses':REL_CACHE})
+    return render_template('graph.html', data=jsn)
 
 
-@app.route('/_subgraph')
+@APP.route('/_subgraph')
 def subgraph():
-    global n_cache, s_cache
-    g1 = request.args.get('group1', "no group1", type=str)
-    g1 = [s.strip() for s in g1.split(",")]
-    g2 = request.args.get('group2', "no group2", type=str)
-    g2 = [s.strip() for s in g2.split(",")]
-    ws = request.args.get('minWeightS', 1, type=int)
-    wj = request.args.get('minWeightJ', 1, type=int)
-    l = request.args.get('maxLength', 2, type=int)
-    dir = request.args.get('dir', '->', type=str)
-    res = neo.subgraph(g1, g2, l, ws, wj, dir)    
-    n_cache = res['neurons']
-    s_cache = res['synapses']
+    global NODE_CACHE, REL_CACHE
+    gr1 = request.args.get('group1', "no group1", type=str)
+    gr1 = [s.strip() for s in gr1.split(",")]
+    gr2 = request.args.get('group2', "no group2", type=str)
+    gr2 = [s.strip() for s in gr2.split(",")]
+    min_ws = request.args.get('minWeightS', 1, type=int)
+    min_wj = request.args.get('minWeightJ', 1, type=int)
+    max_l = request.args.get('maxLength', 2, type=int)
+    path_dir = request.args.get('dir', '->', type=str)
+    res = neo.subgraph(gr1, gr2, max_l, min_ws, min_wj, path_dir)
+    NODE_CACHE = res['neurons']
+    REL_CACHE = res['synapses']
     return jsonify(result=res)
 
 
-@app.route('/_expand')
+@APP.route('/_expand')
 def expand():
-    global n_cache, s_cache
+    global NODE_CACHE, REL_CACHE
     names = request.args.getlist('names[]')
-    res = neo.allConsForSet(names)    
-    n_cache = res['neurons']
-    s_cache = res['synapses']    
+    res = neo.all_cons_for_set(names)    
+    NODE_CACHE = res['neurons']
+    REL_CACHE = res['synapses']    
     return jsonify(result=res)
 
 
-@app.route('/_reset')
+@APP.route('/_reset')
 def reset():
-    global n_cache, s_cache
-    n_cache = neo.neurons()
-    s_cache = neo.synapsesD3(n_cache, 0)
-    res = {'neurons':n_cache, 'synapses':s_cache}
+    global NODE_CACHE, REL_CACHE
+    NODE_CACHE = neo.neurons()
+    REL_CACHE = neo.synapses_d3(NODE_CACHE, min_weight=0)
+    res = {'neurons':NODE_CACHE, 'synapses':REL_CACHE}
     return jsonify(result=res)
 
 
-@app.route('/export')
+@APP.route('/export', methods=["GET"])
 def export():
-    nxg = netx.toNx(n_cache, s_cache)
-    jsg = netx.toJson(nxg)
-    resp = Response(jsg, mimetype="application/json")
+    print request.args
+    exp_format = request.args.get('format', "json", type=str)
+    nxg = netx.to_netx(NODE_CACHE, REL_CACHE)
+    
+    if "json" in exp_format:
+        jsg = netx.to_json(nxg, exp_format)
+        resp = Response(jsg, mimetype="application/json")
+    elif "graphml" in exp_format:
+        text = netx.to_graphml(nxg)
+        resp = Response(text, mimetype="text/plain")
+    elif "gml" in exp_format:
+        text = netx.to_gml(nxg)
+        resp = Response(text, mimetype="text/plain")
+    elif "adj" in exp_format:
+        text = netx.to_adj(nxg)
+        resp = Response(text, mimetype="text/plain")
+    
     return resp
 
 
-@app.route('/sigma')
+@APP.route('/sigma')
 def sigma():
-    ns = neo.neuronsSigma()
-    ss = neo.synapsesSigma(ns, 2)
-    d = {'nodes':ns, 'edges':ss}
-    j = json.dumps(d)
-    return render_template('sigma.html', data=j)
+    n_sig = neo.neurons_sigma()
+    s_sig = neo.synapses_sigma(n_sig, 2)
+    jsn = json.dumps({'nodes':n_sig, 'edges':s_sig})
+    return render_template('sigma.html', data=jsn)
 
 
-@app.route('/login', methods=['GET', 'POST'])
+@APP.route('/login', methods=['GET', 'POST'])
 def login():
     error = None
     if request.method == 'POST':
-        if request.form['username'] != app.config['USER_NAME']:
+        if request.form['username'] != APP.config['USER_NAME']:
             error = 'Invalid username'
-        elif request.form['password'] != app.config['PASSWORD']:
+        elif request.form['password'] != APP.config['PASSWORD']:
             error = 'Invalid password'
         else:
             session['logged_in'] = True
@@ -114,7 +126,7 @@ def login():
     return redirect(url_for('show_runs'))
 
 
-@app.route('/logout')
+@APP.route('/logout')
 def logout():
     session.pop('logged_in', None)
     flash('You were logged out')
@@ -124,4 +136,4 @@ def logout():
 # Autostart
 # ------------------------------------------------------------------------------
 if __name__ == '__main__':
-    app.run(debug=True)
+    APP.run(debug=True)

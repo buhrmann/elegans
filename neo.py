@@ -1,218 +1,204 @@
+"""
+Handle import and export of data into and out of Neo4j database.
+"""
 
 import os
-from py2neo import ServiceRoot, Node, neo4j
+from py2neo import ServiceRoot
 
-from neo4jrestclient import client
 from neo4jrestclient.client import GraphDatabase
 from urlparse import urlparse, urlunparse
 
-import networkx as nx
-
-import numpy as np
-import json
 import preproc
 
 
-# Get connection to graph
-def graph():
+def graph_p2():
+    """ Get connection to graph via py2neo. """
     graphenedb_url = os.environ.get("GRAPHENEDB_URL", "http://localhost:7474/")
     return ServiceRoot(graphenedb_url).graph
 
 
-def graphR():
+def graph_rest():
+    """ Get connection to graph via neo4jrestclient """
     url = os.environ.get("GRAPHENEDB_URL", None)
-    if url == None: 
+    if url == None:
         return GraphDatabase("http://localhost:7474/db/data/")
     else:
         url = urlparse(url)
         url_without_auth = urlunparse((url.scheme, "{0}:{1}".format(url.hostname, url.port), url.path, None, None, None))
-        return GraphDatabase(url_without_auth, username = url.username, password = url.password)
-        
-g = graphR()
+        return GraphDatabase(url_without_auth, username=url.username, password=url.password)
 
 
-# Imports neurons from source files
-# TODO: store preprocessed data locally as csv, then import without need to recreate each time
-# nor for using pandas etc.
-def dbAddNeurons(clear):
-    pg = graph()
-    if clear: 
-        pg.delete_all()
-
-    neurons = preproc.neuronsDf()
-    tx = pg.cypher.begin()
-    statement = "CREATE (n:Neuron {props})"    
-    for name, params in neurons.iterrows():        
-        params = params.to_dict()
-        params['name'] = name        
-        tx.append(statement, {"props":params})
-    tx.commit()
+GRAPH = graph_rest()
 
 
-# Add synapses
-# TODO: store preprocessed data locally as csv, then import without need to recreate each time
-# nor for using pandas etc.
-def dbAddSynapses(clear):
-    pg = graph()
+def db_add_neurons(clear):
+    """ Import neurons into DB from local files. """
+    graph = graph_p2()
     if clear:
-        pg.delete_all()
+        graph.delete_all()
 
-    conns = preproc.connsDf()
-    tx = pg.cypher.begin()
+    neurons_df = preproc.neurons_df()
+    transx = graph.cypher.begin()
+    statement = "CREATE (n:Neuron {props})"
+    for name, params in neurons_df.iterrows():
+        params = params.to_dict()
+        params['name'] = name
+        transx.append(statement, {"props":params})
+    transx.commit()
+
+
+def db_add_synapses(clear):
+    """ Import synapses into DB from local files. """
+    graph = graph_p2()
+    if clear:
+        graph.delete_all()
+
+    conns = preproc.conns_df()
+    transx = graph.cypher.begin()
     statement = "MATCH (n1:Neuron {name:{nm1}}), (n2:Neuron {name:{nm2}}) CREATE (n1)-[s:Synapse {name:n1.name+'->'+n2.name, type:{tp}, weight:{w}}]->(n2)" 
-    for ix, r in conns.iterrows():
-        tx.append(statement, {"nm1":r['Neuron1'], "nm2":r['Neuron2'], "tp":r["Type"], "w":r["Nbr"]})
-    tx.commit()
-    dbSetNodeDegrees()
+    for idx, row in conns.iterrows():
+        transx.append(statement, {"nm1":row['Neuron1'], "nm2":row['Neuron2'], "tp":row["Type"], "w":row["Nbr"]})
+    transx.commit()
+    db_set_node_degrees()
 
 
-def dbSetNodeDegrees():
-    sIn = "MATCH (n) OPTIONAL MATCH (n)<-[r]-(m) WITH n as n, COUNT(r) as inD SET n.inD=inD"
-    sOut = "MATCH (n) OPTIONAL MATCH (n)-[r]->(m) WITH n as n, COUNT(r) as outD SET n.outD=outD"
+def db_set_node_degrees():
+    """ Calculate and set the in, out and total node degree for each node in the DB. """
+    syn_in = "MATCH (n) OPTIONAL MATCH (n)<-[r]-(m) WITH n as n, COUNT(r) as inD SET n.inD=inD"
+    syn_out = "MATCH (n) OPTIONAL MATCH (n)-[r]->(m) WITH n as n, COUNT(r) as outD SET n.outD=outD"
     total = "MATCH (n) SET n.D = (n.inD + n.outD)"
-    g.query(sIn)
-    g.query(sOut)
-    g.query(total)
-    
+    GRAPH.query(syn_in)
+    GRAPH.query(syn_out)
+    GRAPH.query(total)
 
-# Get all neurons as list
+
 def neurons():
-    q = "MATCH (n:Neuron) return n"
-    res = g.query(q)
-    #return [r[0]['data'] for r in res]
-    neurons = []
-    for n in res:
-        neuron = n[0]['data']
-        neuron['id'] = n[0]['metadata']['id']
-        neurons.append(neuron)
-    return neurons
+    """ Return all neurons in DB as list of dicts (d3.js format). """
+    query = "MATCH (n:Neuron) return n"
+    res = GRAPH.query(query)
+    neuron_list = []
+    for row in res:
+        neuron = row[0]['data']
+        neuron['id'] = row[0]['metadata']['id']
+        neuron_list.append(neuron)
+    return neuron_list
 
 
-# Get all neurons as list
-def neuronsSigma():
-    q = "MATCH (n:Neuron) return n"
-    res = g.query(q)
-    neurons = []
-    for n in res:
-        neuron = n[0]['data']
+def neurons_sigma():
+    """ Return all neurons in DB as list of dicts (sigma.js format). """
+    query = "MATCH (n:Neuron) return n"
+    res = GRAPH.query(query)
+    neuron_list = []
+    for row in res:
+        neuron = row[0]['data']
         neuron['id'] = neuron['name']
         neuron['label'] = neuron['name']
-        neurons.append(neuron)
+        neuron_list.append(neuron)
     #return [r[0]['data'].update({'id':r[0]['data']['name']}) for r in res]
-    return neurons
+    return neuron_list
 
 
-# Get all synapses as list
 def synapses():
-    q = "MATCH (n1:Neuron)-[s:Synapse]->(n2:Neuron) return {from:n1.name, to:n2.name, type:s.type, weight:s.weight}"
-    res = g.query(q)
-    return [r[0] for r in res] 
+    """ Return all synapses in DB as list of dicts. """
+    query = "MATCH (n1:Neuron)-[s:Synapse]->(n2:Neuron) return {from:n1.name, to:n2.name, type:s.type, weight:s.weight}"
+    res = GRAPH.query(query)
+    return [row[0] for row in res] 
 
 
-# d3 compatible format
-def synapsesSigma(neurons, minWeight=0):
-    q = "MATCH (n1:Neuron)-[s:Synapse]->(n2:Neuron) return {source:n1.name, target:n2.name, kind:s.type, size:s.weight, id:str(id(s))}"
-    res = g.query(q)
-    synapses = []
-    for r in res:
-        s = r[0]
-        if s['size'] >= minWeight:
-            s['type'] = 'curvedArrow'
-            s['color'] = '#bbb'
-            s['hover_color'] = '#000'
-            synapses.append(s)
-    return synapses
+def synapses_sigma(neurons, min_weight=0):
+    """ Return all synapses in DB as list of dicts (sigma.js format). """
+    query = "MATCH (n1:Neuron)-[s:Synapse]->(n2:Neuron) return {source:n1.name, target:n2.name, kind:s.type, size:s.weight, id:str(id(s))}"
+    res = GRAPH.query(query)
+    synapse_list = []
+    for row in res:
+        synapse = row[0]
+        if synapse['size'] >= min_weight:
+            synapse['type'] = 'curvedArrow'
+            synapse['color'] = '#bbb'
+            synapse['hover_color'] = '#000'
+            synapse_list.append(synapse)
+    return synapse_list
 
 
-# d3 compatible format
-def synapsesD3(neurons, minWeight=1):
+def synapses_d3(neuron_list, min_weight=1):
+    """ Return all synapses in DB as list of dicts (d3.js format). """
     #q = "MATCH (n1:Neuron)-[s:Synapse]->(n2:Neuron) return {from:id(n1), to:id(n2), type:s.type, weight:s.weight, id:id(s)}"
     # For EJs we only need to show one direction
-    q = "MATCH (n1:Neuron)-[s:Synapse]->(n2:Neuron) WHERE s.type<>'EJ' OR (s.type='EJ' AND id(n1)<id(n2)) RETURN {from:id(n1), to:id(n2), type:s.type, weight:s.weight, id:id(s)}"
-    res = g.query(q)
-    synapses = []
-    for r in res:
-        if r[0]['weight'] >= minWeight:
-            s = r[0]
-            s['source'] = [i for i,n in enumerate(neurons) if n['id'] == s['from']] [0]
-            s['target'] = [i for i,n in enumerate(neurons) if n['id'] == s['to']] [0]
-            synapses.append(s)
-    return synapses
+    query = "MATCH (n1:Neuron)-[s:Synapse]->(n2:Neuron) WHERE s.type<>'EJ' OR (s.type='EJ' AND id(n1)<id(n2)) RETURN {from:id(n1), to:id(n2), type:s.type, weight:s.weight, id:id(s)}"
+    res = GRAPH.query(query)
+    synapse_list = []
+    for row in res:
+        if row[0]['weight'] >= min_weight:
+            synapse = row[0]
+            synapse['source'] = [i for i, n in enumerate(neuron_list) if n['id'] == synapse['from']][0]
+            synapse['target'] = [i for i, n in enumerate(neuron_list) if n['id'] == synapse['to']][0]
+            synapse_list.append(synapse)
+    return synapse_list
 
 
-# Returns subgraph connecting neurons in group1 with neurons in group2
-def allConsForSet(neurons):
+def all_cons_for_set(neuron_set):
+    """ Return the subgraph consisting of all connections between specified list of neurons. """
     #q = "MATCH (n)-[r]-(m) WHERE n.name IN {g} AND m.name IN {g} RETURN DISTINCT r"
-    q = "MATCH (n)-[r]-(m) WHERE n.name IN {g} AND m.name IN {g} RETURN COLLECT(DISTINCT r), COLLECT(DISTINCT n)"
-    res = g.query(q, params={"g":neurons})[0]
-    
+    query = "MATCH (n)-[r]-(m) WHERE n.name IN {g} AND m.name IN {g} RETURN COLLECT(DISTINCT r), COLLECT(DISTINCT n)"
+    res = GRAPH.query(query, params={"g":neuron_set})[0]
+
     res_syns = res[0]
     res_nodes = res[1]
-    synapses = []
-    neurons = []
+    synapse_list = []
+    neuron_list = []
+
+    for row in res_nodes:
+        neuron = row['data']
+        neuron['id'] = row['metadata']['id']
+        neuron_list.append(neuron)
+
+    for row in res_syns:
+        synapse = row['data']
+        synapse['from'] = int(row['start'].rsplit("/", 1)[1])
+        synapse['to'] = int(row['end'].rsplit("/", 1)[1])
+        synapse['source'] = [i for i, n in enumerate(neuron_list) if n['id'] == synapse['from']][0]
+        synapse['target'] = [i for i, n in enumerate(neuron_list) if n['id'] == synapse['to']][0]
+        synapse['id'] = row['metadata']['id']
+        synapse_list.append(synapse)
+
+    return {"synapses":synapse_list, "neurons":neuron_list}
+
+
+def subgraph(gr1, gr2, max_length=2, min_ws=2, min_wj=2, path_dir='->'):
+    """ Return the subgraph connecting neurons in group1 with neurons in group2 """
     
-    for n in res_nodes:
-        neuron = n['data']
-        neuron['id'] = n['metadata']['id']
-        neurons.append(neuron)
+    query = ("MATCH (n1:Neuron) WHERE n1.group IN {g1} "
+             "MATCH (n2:Neuron) WHERE n2.group IN {g2} ")
+    query += "MATCH p=(n1)-[r*1.." + str(max_length) + "]" + path_dir + "(n2) "
+    query += "WHERE ALL(c IN r WHERE (c.type='EJ' AND c.weight >= {wj}) OR (c.type<>'EJ' AND c.weight >= {ws})) "
+    query += ("AND ALL(n in NODES(p) WHERE 1=length(filter(m in NODES(p) WHERE m=n))) "
+              "WITH DISTINCT r AS dr, NODES(p) AS ns "
+              "UNWIND dr AS udr UNWIND ns AS uns "
+              "RETURN COLLECT(DISTINCT udr), COLLECT(DISTINCT uns)")
 
-    for syn in res_syns:
-        s = syn['data']
-        s['from'] = int(syn['start'].rsplit("/", 1)[1])
-        s['to'] = int(syn['end'].rsplit("/", 1)[1])
-        s['source'] = [i for i,n in enumerate(neurons) if n['id'] == s['from']][0]
-        s['target'] = [i for i,n in enumerate(neurons) if n['id'] == s['to']][0]
-        s['id'] = syn['metadata']['id']
-        synapses.append(s)
-    
-    return {"synapses":synapses, "neurons":neurons}
-
-
-# Returns subgraph connecting neurons in group1 with neurons in group2
-def subgraph(g1, g2, l=2, ws=2, wj=2, dir='->'):
-
-    # q = ("MATCH (n1:Neuron) WHERE n1.group={g1} "
-    #      "MATCH (n2:Neuron) WHERE n2.group={g2} ")
-    q = ("MATCH (n1:Neuron) WHERE n1.group IN {g1} "
-         "MATCH (n2:Neuron) WHERE n2.group IN {g2} ")
-    q += "MATCH p=(n1)-[r*1.." + str(l) + "]" + dir + "(n2) "
-    q += "WHERE ALL(c IN r WHERE (c.type='EJ' AND c.weight >= {wj}) OR (c.type<>'EJ' AND c.weight >= {ws})) "
-    #q += "WHERE ALL(c IN r WHERE c.weight >= {ws}) "
-    q += ("AND ALL(n in NODES(p) WHERE 1=length(filter(m in NODES(p) WHERE m=n))) "
-          "WITH DISTINCT r AS dr, NODES(p) AS ns "
-          "UNWIND dr AS udr UNWIND ns AS uns "
-          "RETURN COLLECT(DISTINCT udr), COLLECT(DISTINCT uns)")
-
-    parameters = {"g1":g1, "g2":g2, "ws":ws, "wj":wj, "l":l}
-    # print "Querying graph with ", q, parameters
-    res = g.query(q, params=parameters)[0]
-    # print "...Done querying."
+    parameters = {"g1":gr1, "g2":gr2, "ws":min_ws, "wj":min_wj, "l":max_length}    
+    res = GRAPH.query(query, params=parameters)[0]
     res_syns = res[0]
     res_nodes = res[1]
-    synapses = []
-    neurons = []
+    synapse_list = []
+    neuron_list = []
     
-    for n in res_nodes:
-        neuron = n['data']
-        neuron['id'] = n['metadata']['id']
-        neurons.append(neuron)
+    for row in res_nodes:
+        neuron = row['data']
+        neuron['id'] = row['metadata']['id']
+        neuron_list.append(neuron)
 
-    # for n in neurons:
-    #      print n['id'], n['name']
-
-    for syn in res_syns:
-        # print syn, "\n"
-        s = syn['data']
+    for row in res_syns:
+        synapse = row['data']
         # Connected nodes are referenced by their index in start and end properties (within url)
-        s['from'] = int(syn['start'].rsplit("/", 1)[1])
-        s['to'] = int(syn['end'].rsplit("/", 1)[1])
-        # print s['from'], " -> ", s['to']
-        s['source'] = [i for i,n in enumerate(neurons) if n['id'] == s['from']][0]
-        s['target'] = [i for i,n in enumerate(neurons) if n['id'] == s['to']][0]
-        s['id'] = syn['metadata']['id']
-        synapses.append(s)
-    
-    return {"synapses":synapses, "neurons":neurons}
+        synapse['from'] = int(row['start'].rsplit("/", 1)[1])
+        synapse['to'] = int(row['end'].rsplit("/", 1)[1])
+        synapse['source'] = [i for i, n in enumerate(neuron_list) if n['id'] == synapse['from']][0]
+        synapse['target'] = [i for i, n in enumerate(neuron_list) if n['id'] == synapse['to']][0]
+        synapse['id'] = row['metadata']['id']
+        synapse_list.append(synapse)
+
+    return {"synapses":synapse_list, "neurons":neuron_list}
 
 
     # MATCH (n), (n2) WHERE n.group="ADA" AND n2.group="AVA" MATCH (n)-[r*1..2]->(n2) RETURN n, n2, COUNT(r)

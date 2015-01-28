@@ -30,9 +30,12 @@ var arcs = false;
 var sqrt3 = 1.7320508075688772;
 
 var presets = [
-    {name: "Salt klinotaxis small (Izquierdo2013)", g1:"ASE", g2:"SMB", smin: 2, jmin: 2, length:3},
-    {name: "Salt klinotaxis big (Izquierdo2013)", g1:"ASE", g2:"SMB", smin: 1, jmin: 1, length:3},
-    {name: "Locomotion (wormatlas)", g1:"ALM, AVM, PVM, PLM, ASH", g2:"VB, DB, RMD, RIM, SMD, VA, DA", smin: 1, jmin: 1, length:2}
+    {name: "Salt klinotaxis S", g1:"ASE", g2:"SMB", smin: 2, jmin: 2, length:3},
+    {name: "Salt klinotaxis L", g1:"ASE", g2:"SMB", smin: 1, jmin: 1, length:3},
+    // Piggot thesis, p. 89 A
+    {name: "Isothermal tracking", g1:"AFD,AWC", g2:"VB, DB, RMD, RIM, SMD, VA, DA, DD", smin: 1, jmin: 1, length:2},
+    // Piggot thesis, p. 35 A 
+    {name: "Backward escape", g1:"ASH", g2:"VB, DB, RMD, RIM, SMD, VA, DA, DD", smin: 1, jmin: 1, length:2}
 ]
 
 //-------------------------------------------------------------------
@@ -172,7 +175,6 @@ function buildPresets() {
 
 function applyPreset(id) {
     p = presets[id];
-    console.log(p);
     $("#group1").val(p.g1);
     $("#group2").val(p.g2);
     setSlider("subw", p.smin);

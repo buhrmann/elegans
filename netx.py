@@ -1,36 +1,57 @@
+"""
+Handle NetworkX interfacing, i.e. conversion from neo4j data to NetworkX
+graph and output of graph to various formats.
+"""
+
 import json
 import networkx as nx
 from networkx.readwrite import json_graph as jsg
 
 
-def toNx(neurons, synapses):
-    g = nx.MultiDiGraph()
+def to_netx(neurons, synapses):
+    """ Create a networkx MultiDiGraph from a list of nodes and edges. """
+    net = nx.MultiDiGraph()
 
-    for n in neurons:
-        nc = n.copy()
-        i = nc.pop('id')
-        g.add_node(i, nc)
+    for neuron in neurons:
+        ncp = neuron.copy()
+        i = ncp.pop('id')
+        net.add_node(i, ncp)
 
-    for e in synapses:
-        ec = e.copy()
-        f = ec.pop('from')
-        t = ec.pop('to')
-        i = ec.pop('id')
-        g.add_edge(f, t, i, ec)
+    for syn in synapses:
+        syncp = syn.copy()
+        src = syncp.pop('from')
+        target = syncp.pop('to')
+        idx = syncp.pop('id')
+        net.add_edge(src, target, idx, syncp)
 
-    return g
-
-
-def toJson(g):
-    js = jsg.node_link_data(g)
-    js = json.dumps(js, indent=2, sort_keys=True)
-    return js
+    return net
 
 
-def saveGrML(g, fnm):
-    nx.write_graphml(g, fnm, prettyprint=True)
+def to_json(net, gformat):
+    if "list" in gformat:
+        jsn = jsg.node_link_data(net)
+    else:
+        jsn = jsg.adjacency_data(net)
+    jsn = json.dumps(jsn, indent=2, sort_keys=True)
+    return jsn
 
 
-def printGrML(g):
-    s = '\n'.join(nx.generate_graphml(g))
-    print s
+def to_gml(net):
+    return '\n'.join(nx.generate_gml(net))
+
+
+def to_graphml(net):
+    return '\n'.join(nx.generate_graphml(net))
+
+
+def to_adj(net):
+    return '\n'.join(nx.generate_adjlist(net))
+
+
+def save_graphml(net, fnm):
+    nx.write_graphml(net, fnm, prettyprint=True)
+
+
+def print_graphml(net):
+    strg = '\n'.join(nx.generate_graphml(net))
+    print strg

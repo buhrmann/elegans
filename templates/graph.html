@@ -66,7 +66,7 @@
           </div>
 
           <p>            
-            <div class="dropdown">
+            <div class="dropdown" id="preset-dd">
               <label for="presetButton" style="width:100%">Or simply select a preset:</label>
               <button class="btn btn-default btn-sm btn-block dropdown-toggle" type="button" id="presetButton" data-toggle="dropdown" aria-expanded="true">
                 Presets
@@ -167,7 +167,27 @@
           </a></small>
         </h3>
         <div id="exppanel" class="panel-collapse collapse in">
-          <a href="{{url_for('export')}}" target="_blank" class="btn btn-sm btn-default" role="button" title="Export current graph">Export</a>
+          Output current network as text file in new window.
+          <form action="{{ url_for('export')}}" method="get" role="form" name="exportform" target="_blank">
+            <p>            
+              <div class="dropdown" id="export-dd">
+                <label for="presetButton" style="width:100%">Select format:</label>
+                <button class="btn btn-default btn-sm btn-block dropdown-toggle" type="button" id="exportFormatDD" data-toggle="dropdown" aria-expanded="true">
+                  JSON (list)
+                  <span class="caret"></span>
+                </button>
+                <input type="hidden" id="selected-format" name="format" value="json-list"/>
+                <ul class="dropdown-menu" role="menu" aria-labelledby="exportFormatDD" id="exprtFormatList">
+                  <li role="presentation"><a href="#" id="exp1" value="json-list" role="menuitem" tabindex=-1>JSON (list)</a></li>
+                  <li role="presentation"><a href="#" id="exp1" value="json-graph" role="menuitem" tabindex=-1>JSON (adj)</a></li>
+                  <li role="presentation"><a href="#" id="exp2" value="graphml" role="menuitem" tabindex=-1>GraphML</a></li>
+                  <li role="presentation"><a href="#" id="exp3" value="gml" role="menuitem" tabindex=-1>Gml</a></li>
+                  <li role="presentation"><a href="#" id="exp4" value="adj" role="menuitem" tabindex=-1>Adjacency list</a></li>
+                </ul>
+              </div>
+            </p>
+            <a href="javascript:{ document.exportform.submit();}" type="submit" target="_blank" class="btn btn-sm btn-default btn-block" role="button" title="Export current graph">Export</a>
+          </form>
         </div>
       </div>
 
@@ -199,6 +219,16 @@
       $(this).parents(".input-group-btn").find('.btn').val($(this).text());
     });
 
+    $(".dropdown li a").click(function(){
+      $(this).parents(".dropdown").find('.btn').html( ($(this).text() + ' <span class="caret"></span>'));
+      $(this).parents(".dropdown").find('.btn').val($(this).text());
+    });
+
+    $("#export-dd li a").click(function () {
+      var selectedOption = $(this).attr('value');
+      $("#selected-format").attr('value', selectedOption);
+ });
+
     // Change minimize/maximize buttons
     $('.collapse').on('hidden.bs.collapse', function () {
       $(this).parent().find("span.glyphicon").removeClass("glyphicon-resize-small").addClass("glyphicon-resize-full");
@@ -207,7 +237,7 @@
       $(this).parent().find("span.glyphicon").removeClass("glyphicon-resize-full").addClass("glyphicon-resize-small");
     });
 
-    $("li a[role='menuitem']").click(function(e){
+    $("#preset-dd li a[role='menuitem']").click(function(e){
       applyPreset($(this).attr("id"));
       e.preventDefault();
     });

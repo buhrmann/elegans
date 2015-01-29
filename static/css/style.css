@@ -196,11 +196,14 @@ figure {
     display:inline-block;
     float:none;
     /* reset the text-align */
-    text-align:left;
+    text-align: left;
     /* inline-block space fix */
     margin-right:-4px;
 }
 
+.text-center {
+  text-align: center;
+}
 
 .col-fixed {
     /* custom width */

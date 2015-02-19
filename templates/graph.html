@@ -254,6 +254,10 @@
       toggleRightPanel();
     });
 
+    $("#tophandle").click(function() {
+      toggleTopPanel();
+    });
+
     toggleLeftPanel = function(visible) {
       var s = $("#lefthandle").find("span.glyphicon");
       var visnow = s.hasClass("glyphicon-chevron-left");
@@ -286,20 +290,24 @@
       }
     }    
 
-    $("#tophandle").click(function() {
-      $(".topwrapper").toggleClass("out");
-      var s = $("#tophandle").find("span.glyphicon");
-      if (s.hasClass("glyphicon-chevron-up")) {
-        s.removeClass("glyphicon-chevron-up").addClass("glyphicon-chevron-down");
-        toggleLeftPanel(true);
-        toggleRightPanel(true);
-      }
-      else {
-        s.removeClass("glyphicon-chevron-down").addClass("glyphicon-chevron-up");
-        toggleLeftPanel(false);
-        toggleRightPanel(false);
-      }
-    });
+    toggleTopPanel = function() {
+        $(".topwrapper").toggleClass("out");
+        var s = $("#tophandle").find("span.glyphicon");
+        if (s.hasClass("glyphicon-chevron-up")) {
+          s.removeClass("glyphicon-chevron-up").addClass("glyphicon-chevron-down");
+          $("#tophandle").find("a span.handlelabel").css("display", "none");
+          $("#tophandle").css("height", "20px");
+          toggleLeftPanel(true);
+          toggleRightPanel(true);        
+        }
+        else {
+          s.removeClass("glyphicon-chevron-down").addClass("glyphicon-chevron-up");        
+          $("#tophandle").find("a span.handlelabel").css("display", "inline");        
+          $("#tophandle").css("height", "40px");
+          toggleLeftPanel(false);
+          toggleRightPanel(false);
+        }
+    }
 
   }); 
   </script>

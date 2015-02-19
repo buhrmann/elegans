@@ -30,9 +30,9 @@ body {
 
 .topwrapper {
   position: fixed;
-  top: -710px;
+  top: -730px;
   width: 600px;
-  height: 720px;
+  height: 740px;
   left: 50%;
   -webkit-transform: translate(-50%, 0);  
   -moz-transform: translate(-50%, 0);
@@ -94,8 +94,9 @@ h3 a:hover {
 }
 
 .uihandle-top {
+  padding-top: 0px;
   width: 50px;
-  height: 30px;
+  height: 40px;
   left: 50%;
   text-align: center;
   vertical-align: top;

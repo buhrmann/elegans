@@ -23,14 +23,11 @@
       <div class="introheader">
         <h3>Elegans - a connectome explorer for the nematode worm <em>C. elegans</em></h3>
         <p>
-          Elegans is a tool that allows visual and interactive exploration of the connectome of <em>C. elegans</em>. In its current form its main purpose is to give researchers interested in modelling a specific worm behaviour the tool to extract subcircuits that may underlie the behaviour in question.
-        </p>
-        <p>
-          For background information about this app see the <a href="{{ url_for('about')}}">About section</a>.
-        </p>
-        
+          Elegans is a tool that allows visual and interactive exploration of the connectome of <em>C. elegans</em>. In its current form its main purpose is to give researchers interested in modelling a specific worm behaviour the tool to extract subcircuits that may underlie the behaviour in question. For background information about this app see the <a href="{{ url_for('about')}}">About section</a>.
+        </p><br>
+        <p class="text-center"><a href="javascript:toggleTopPanel();" type="button" class="btn btn-warning">Start Now</a></p>
+
         <h4>Usage</h4>
-        <h5>Manipulation of neurons in the network view</h5>
         <p>
           <dl class="dl-horizontal" style="text-align: left">
             <dt>Hover</dt>
@@ -60,6 +57,7 @@
       </div>
       <div class="uihandle uihandle-top" id="tophandle">
         <a href="#">
+          <span class="handlelabel">Start<br></span> 
           <span class='glyphicon glyphicon-chevron-up'></span>
         </a>            
       </div>

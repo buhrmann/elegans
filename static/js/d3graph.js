@@ -708,6 +708,7 @@ function graphReset() {
     return false;
 }
 
+
 function expand() {
     if (fetched) {
         var name_list = nodes.map(function(d) { return d.name; });
@@ -725,6 +726,7 @@ function expand() {
     }
     return false;
 }
+
 
 function subGraph() {
     var g1 = document.getElementById('group1').value;
@@ -755,4 +757,21 @@ function subGraph() {
       });
       return false;
 }
-	
+
+
+function exportSvg() {
+    var ctn = document.getElementById("graph");
+    var svg = ctn.getElementsByTagName("svg")[0];
+    var serializer = new XMLSerializer();
+    var source = serializer.serializeToString(svg);
+    //var style = "<?xml-stylesheet href='/static/css/d3.css' type='text/css'?>"
+    return source;
+}
+
+function downloadPng() {
+    // From https://github.com/exupero/saveSvgAsPng
+    var ctn = document.getElementById("graph");
+    var svg = ctn.getElementsByTagName("svg")[0];
+    saveSvgAsPng(svg, "graph.png");
+}
+

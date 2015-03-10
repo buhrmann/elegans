@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, flash, url_for, session, redirect, jsonify, Response
+from flask import Flask, render_template, request, flash, url_for, session, redirect, jsonify, Response, make_response
 import json
 import neo
 import netx
@@ -98,6 +98,16 @@ def export():
         text = netx.to_adj(nxg)
         resp = Response(text, mimetype="text/plain")
     
+    return resp
+
+
+@APP.route('/downloadSvg', methods=["GET"])
+def downloadSvg():
+    print request.args
+    svg_source = request.args.get('svg-source', "", type=str)
+    #resp = Response(svg_source, mimetype="svg")
+    resp = make_response(svg_source)
+    resp.headers["Content-Disposition"] = "attachment; filename=graph.svg"
     return resp
 
 

@@ -4,6 +4,8 @@
 
   {% if data %}
     <div id="graph"></div>
+    <canvas width="1000" height="1000" style="display:none"></canvas>
+
 
     <div class="uiwidget uiwidget-left" id="left-widget">
         <div class="formpanel">
@@ -188,6 +190,16 @@
             </p>
             <a href="javascript:{ document.exportform.submit();}" type="submit" target="_blank" class="btn btn-sm btn-default btn-block" role="button" title="Export current graph">Export</a>
           </form>
+
+          <!-- <form action="{{ url_for('downloadSvg')}}" method="get" role="form" name="downloadform" target="_blank">
+          <input type="hidden" id="svg-source" name="svg-source" value=""/>
+          <a href="javascript:{ $('#svg-source').attr('value', exportSvg()); document.downloadform.submit();}" class="btn btn-sm btn-default btn-block" role="button" title="Export to svg">Export Svg</a>
+          </form> -->
+          <p><br>
+          Or simply download an image file<br>
+          </p>
+          <a href="javascript:downloadPng();" class="btn btn-sm btn-default btn-block" role="button" title="Download Png">Download as .png</a>
+          
         </div>
       </div>
 
@@ -201,7 +213,8 @@
   <script type="text/javascript" src={{url_for('static', filename='js/crossfilter.min.js')}}></script>  
   <!--<script type="text/javascript" src={{url_for('static', filename='js/colorbrewer.v1.min.js')}}></script>  -->
   <script>
-  // Register event handlers right here
+
+  // Register event handlers
   $(function() {
 
     $('#prune-radio a').click(function() {
@@ -311,7 +324,7 @@
 
   }); 
   </script>
-
-  <script type="text/javascript" src={{url_for('static', filename='js/d3graph.js')}}></script>    
+  <script type="text/javascript" src={{url_for('static', filename='js/saveSvgAsPng.js')}}></script>
+  <script type="text/javascript" src={{url_for('static', filename='js/d3graph.js')}}></script>
   <script type="text/javascript">graph("#graph", {{data|safe}});</script>
 {% endblock %}

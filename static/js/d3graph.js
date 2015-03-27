@@ -790,6 +790,7 @@ function subGraph() {
     var wj = document.getElementById('subjslider').value;
     var l = document.getElementById('subpslider').value;
     var dir = $('#dirButton').text();
+    dir = dir == "↓" ? "uni" : "bi";
     document.getElementById("fetchbutton").innerHTML = '<img id="ajaxloader" src="/static/images/ajax-loader.gif">'
     $.getJSON($SCRIPT_ROOT + '/_subgraph', {
         group1: g1,

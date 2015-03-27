@@ -39,18 +39,18 @@
             </a></small>
           </h3>
           <div id="subpanel" class="panel-collapse collapse in">
-          Choose two neuron groups and find the subgraph connecting them.
+          Choose two sets of (comma-separated) neuron groups and find the subgraph connecting them.
           <p>
-            <div class="input-group input-group-sm">
-              <input id="group1" type="search" placeholder="Group1" value="ASE" size="4" class="form-control"/>
-              <div class="input-group-btn">
-                <button type="button" id="dirButton" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-expanded="false" title="Choose directed or undirected connections">&#8594</button>
+            <div class="">
+              <input id="group1" type="search" placeholder="Group1" value="ASE" size="4" class="form-control input-sm"/>
+              <div id="conn-dir-sel" class="input-group-btn">
+                <button type="button" id="dirButton" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-expanded="false" title="Choose directed or undirected connections">&#8595;</button>
                 <ul class="dropdown-menu" role="menu">
-                  <li><a href="#">&#8594</a></li>
-                  <li><a href="#">&#x2194</a></li>
+                  <li><a href="#">&#8595;</a></li>
+                  <li><a href="#">&#8597;</a></li>
                 </ul>
               </div>
-              <input id="group2" type="search" placeholder="Group2" value="SMB" size="4" class="form-control"/>
+              <input id="group2" type="search" placeholder="Group2" value="SMB" size="4" class="form-control input-sm"/>
             </div>
           </p>
         

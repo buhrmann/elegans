@@ -174,9 +174,10 @@ def all_cons_for_set(neuron_set):
     return {"synapses":synapse_list, "neurons":neuron_list}
 
 
-def subgraph(gr1, gr2, max_length=2, min_ws=2, min_wj=2, path_dir='->'):
+def subgraph(gr1, gr2, max_length=2, min_ws=2, min_wj=2, path_dir='uni'):
     """ Return the subgraph connecting neurons in group1 with neurons in group2 """
     
+    path_dir = '->' if path_dir == 'uni' else '-'
     query = ("MATCH (n1:Neuron) WHERE n1.group IN {g1} "
              "MATCH (n2:Neuron) WHERE n2.group IN {g2} ")
     query += "MATCH p=(n1)-[r*1.." + str(max_length) + "]" + path_dir + "(n2) "

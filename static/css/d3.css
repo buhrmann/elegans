@@ -26,6 +26,11 @@ body {
   height: 500px;
 }
 
+#conn-dir-sel {
+  text-align: center;
+  padding: 4px;
+}
+
 .dl-horizontal dt {
   width: 60px;
 }

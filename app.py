@@ -53,7 +53,7 @@ def subgraph():
     min_ws = request.args.get('minWeightS', 1, type=int)
     min_wj = request.args.get('minWeightJ', 1, type=int)
     max_l = request.args.get('maxLength', 2, type=int)
-    path_dir = request.args.get('dir', '->', type=str)
+    path_dir = request.args.get('dir', 'uni', type=str)
     res = neo.subgraph(gr1, gr2, max_l, min_ws, min_wj, path_dir)
     NODE_CACHE = res['neurons']
     REL_CACHE = res['synapses']

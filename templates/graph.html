@@ -42,7 +42,7 @@
           Choose two sets of (comma-separated) neuron groups and find the subgraph connecting them.
           <p>
             <div class="">
-              <input id="group1" type="search" placeholder="Group1" value="ASE" size="4" class="form-control input-sm"/>
+              <input id="group1" type="search" placeholder="Group1" value="ASE" class="form-control input-sm"/>
               <div id="conn-dir-sel" class="input-group-btn">
                 <button type="button" id="dirButton" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-expanded="false" title="Choose directed or undirected connections">&#8595;</button>
                 <ul class="dropdown-menu" role="menu">
@@ -50,9 +50,14 @@
                   <li><a href="#">&#8597;</a></li>
                 </ul>
               </div>
-              <input id="group2" type="search" placeholder="Group2" value="SMB" size="4" class="form-control input-sm"/>
+              <input id="group2" type="search" placeholder="Group2" value="SMB" class="form-control input-sm"/>
             </div>
           </p>
+
+          <div class="form-group">
+            <label for="rec-sel">Include these receptors:</label>
+            <input id="rec-sel" type="search" placeholder="Receptors" class="form-control input-sm"/>
+          </div>
         
           <div class="form-group" id="subw">
             <label for="subwslider">Synapse min weight [1-10]: </label> <output for="subwSlider" id="subwlabel">1</output>

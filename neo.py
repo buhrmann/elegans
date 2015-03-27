@@ -174,12 +174,14 @@ def all_cons_for_set(neuron_set):
     return {"synapses":synapse_list, "neurons":neuron_list}
 
 
-def subgraph(gr1, gr2, max_length=2, min_ws=2, min_wj=2, path_dir='uni'):
+def subgraph(gr1, gr2, max_length=2, min_ws=2, min_wj=2, path_dir='uni', rec=None):
     """ Return the subgraph connecting neurons in group1 with neurons in group2 """
     
     path_dir = '->' if path_dir == 'uni' else '-'
-    query = ("MATCH (n1:Neuron) WHERE n1.group IN {g1} "
-             "MATCH (n2:Neuron) WHERE n2.group IN {g2} ")
+    query = "MATCH (n1:Neuron) WHERE ( (n1.group IN {g1}) "
+    if rec:
+        query += "OR (HAS(n1.modalities) AND ANY(s IN SPLIT(n1.modalities, ', ') WHERE s IN {recs}))"
+    query += ") MATCH (n2:Neuron) WHERE n2.group IN {g2} "
     query += "MATCH p=(n1)-[r*1.." + str(max_length) + "]" + path_dir + "(n2) "
     query += "WHERE ALL(c IN r WHERE (c.type='EJ' AND c.weight >= {wj}) OR (c.type<>'EJ' AND c.weight >= {ws})) "
     query += ("AND ALL(n in NODES(p) WHERE 1=length(filter(m in NODES(p) WHERE m=n))) "
@@ -187,7 +189,8 @@ def subgraph(gr1, gr2, max_length=2, min_ws=2, min_wj=2, path_dir='uni'):
               "UNWIND dr AS udr UNWIND ns AS uns "
               "RETURN COLLECT(DISTINCT udr), COLLECT(DISTINCT uns)")
 
-    parameters = {"g1":gr1, "g2":gr2, "ws":min_ws, "wj":min_wj, "l":max_length}    
+    #print query
+    parameters = {"g1":gr1, "g2":gr2, "ws":min_ws, "wj":min_wj, "l":max_length, "recs":rec}    
     res = GRAPH.query(query, params=parameters)[0]
     res_syns = res[0]
     res_nodes = res[1]

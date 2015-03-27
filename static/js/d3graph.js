@@ -56,7 +56,7 @@ function extractLast( term ) {
 //-------------------------------------------------------------------
 function group_auto(data) {
    
-    var groupArray = d3.set(data.neurons.map(function(d) { return d.group;} ).sort()).values();
+    var groups = d3.set(data.neurons.map(function(d) { return d.group;} ).sort()).values();
     $(function () {
         $("#group1, #group2")
         .bind("keydown", function(event) {
@@ -68,7 +68,7 @@ function group_auto(data) {
             minLength: 0,
             source: function( request, response ) {
                 // delegate back to autocomplete, but extract the last term
-                response($.ui.autocomplete.filter(groupArray, extractLast(request.term)));
+                response($.ui.autocomplete.filter(groups, extractLast(request.term)));
             },
             focus: function() { return false; }, // prevent value inserted on focus
             select: function( event, ui ) {
@@ -82,9 +82,38 @@ function group_auto(data) {
         });
     });
 
-    var nameArray = d3.set(data.neurons.map(function(d) { return d.name;} ).sort()).values();
+    var names = d3.set(data.neurons.map(function(d) { return d.name;} ).sort()).values();
     $(function () {
-        $("#search-node").autocomplete({source: nameArray});
+        $("#search-node").autocomplete({source: names});
+    });
+
+    var modalities = data.neurons
+        .filter(function(x) { return "modalities" in x; })
+        .map(function(d) { return d.modalities.split(", "); });
+    modalities = [].concat.apply([], modalities).sort(); // flatten array
+    modalities = d3.set(modalities).values();
+    $(function () {
+        $("#rec-sel")
+        .bind("keydown", function(event) {
+            if (event.keyCode === $.ui.keyCode.TAB && $(this).autocomplete( "instance" ).menu.active) {
+              event.preventDefault();
+            }
+        })
+        .autocomplete({
+            minLength: 0,
+            source: function( request, response ) {
+                response($.ui.autocomplete.filter(modalities, extractLast(request.term)));
+            },
+            focus: function() { return false; }, // prevent value inserted on focus
+            select: function( event, ui ) {
+                var terms = split( this.value );                
+                terms.pop();    // remove the current input                
+                terms.push( ui.item.value ); // add the selected item                
+                terms.push( "" );   // add placeholder to get the comma-and-space at the end
+                this.value = terms.join( ", " );
+                return false;
+            }            
+        });
     });
 }
 
@@ -786,6 +815,7 @@ function expand() {
 function subGraph() {
     var g1 = document.getElementById('group1').value;
     var g2 = document.getElementById('group2').value;
+    var rec = document.getElementById('rec-sel').value;
     var ws = document.getElementById('subwslider').value;
     var wj = document.getElementById('subjslider').value;
     var l = document.getElementById('subpslider').value;
@@ -795,19 +825,19 @@ function subGraph() {
     $.getJSON($SCRIPT_ROOT + '/_subgraph', {
         group1: g1,
         group2: g2,
+        receptors: rec,
         minWeightS: ws,
         minWeightJ: wj,
         maxLength: l,
         dir: dir
       }, function(d) {
         data = d.result;
-        jmin = wmin = ndeg = 0
+        jmin = wmin = ndeg = 0;
         setSlider("jmin", jminVal=0);
         setSlider("wmin", wminVal=0);
         setSlider("ndeg", ndegVal=0);
         updateCrossFilter(data['neurons'], data['synapses']);
         document.getElementById("fetchbutton").innerHTML = "Fetch"
-        //$('#expandbutton').prop('disabled', false);
         $('#expandbutton').toggleClass('disabled', false);
         fetched = true;
       });

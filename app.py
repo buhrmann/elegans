@@ -47,14 +47,18 @@ def index():
 def subgraph():
     global NODE_CACHE, REL_CACHE
     gr1 = request.args.get('group1', "no group1", type=str)
-    gr1 = [s.strip() for s in gr1.split(",")]
+    gr1 = [s.strip() for s in gr1.split(",") if not s.isspace()]
     gr2 = request.args.get('group2', "no group2", type=str)
-    gr2 = [s.strip() for s in gr2.split(",")]
+    gr2 = [s.strip() for s in gr2.split(",") if not s.isspace()]
+    rec = request.args.get('receptors', "", type=str)
+    rec = [s.strip() for s in rec.split(",") if not s.isspace()]
+    if rec == ['']: 
+        rec = None
     min_ws = request.args.get('minWeightS', 1, type=int)
     min_wj = request.args.get('minWeightJ', 1, type=int)
     max_l = request.args.get('maxLength', 2, type=int)
     path_dir = request.args.get('dir', 'uni', type=str)
-    res = neo.subgraph(gr1, gr2, max_l, min_ws, min_wj, path_dir)
+    res = neo.subgraph(gr1, gr2, max_l, min_ws, min_wj, path_dir, rec)
     NODE_CACHE = res['neurons']
     REL_CACHE = res['synapses']
     return jsonify(result=res)

@@ -47,6 +47,16 @@ def db_add_neurons(clear):
     transx.commit()
 
 
+def db_add_sensory_info():
+    """ Add info about sensory modality etc. to sensory neurons. """
+    query = "MATCH (n) WHERE n.group={grp} SET n.organ={org}, n.modalities={mod}, n.functions={fct}"
+    sdf = preproc.sensors_df()
+    for group, values in sdf.iterrows():
+        values = values.to_dict()
+        pms = {"grp":group, "org":values['organ'], "mod":values['modality'], "fct":values['functions']}
+        GRAPH.query(query, params=pms)
+
+
 def db_add_synapses(clear):
     """ Import synapses into DB from local files. """
     graph = graph_p2()

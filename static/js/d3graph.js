@@ -38,6 +38,57 @@ var presets = [
     {name: "Backward escape", g1:"ASH", g2:"VB, DB, RMD, RIM, SMD, VA, DA, DD", smin: 1, jmin: 1, length:2}
 ]
 
+
+//-------------------------------------------------------------------
+// Little helpers
+//-------------------------------------------------------------------
+function split(val) {
+    return val.split( /,\s*/ );
+}
+
+function extractLast( term ) {
+    return split(term).pop();
+}
+
+//-------------------------------------------------------------------
+// Group input autocomplete (multiple)
+// https://jqueryui.com/autocomplete/#multiple
+//-------------------------------------------------------------------
+function group_auto(data) {
+   
+    var groupArray = d3.set(data.neurons.map(function(d) { return d.group;} ).sort()).values();
+    $(function () {
+        $("#group1, #group2")
+        .bind("keydown", function(event) {
+            if (event.keyCode === $.ui.keyCode.TAB && $(this).autocomplete( "instance" ).menu.active) {
+              event.preventDefault();
+            }
+        })
+        .autocomplete({
+            minLength: 0,
+            source: function( request, response ) {
+                // delegate back to autocomplete, but extract the last term
+                response($.ui.autocomplete.filter(groupArray, extractLast(request.term)));
+            },
+            focus: function() { return false; }, // prevent value inserted on focus
+            select: function( event, ui ) {
+                var terms = split( this.value );                
+                terms.pop();    // remove the current input                
+                terms.push( ui.item.value ); // add the selected item                
+                terms.push( "" );   // add placeholder to get the comma-and-space at the end
+                this.value = terms.join( ", " );
+                return false;
+            }
+        });
+    });
+
+    var nameArray = d3.set(data.neurons.map(function(d) { return d.name;} ).sort()).values();
+    $(function () {
+        $("#search-node").autocomplete({source: nameArray});
+    });
+}
+
+
 //-------------------------------------------------------------------
 // Grap with d3
 //-------------------------------------------------------------------
@@ -118,16 +169,8 @@ graph = function(id, d) {
     edgesWeightDim = efilter.dimension(function(d) { return d.type != "EJ" ? d.weight : 6666; });
     junctionsWeightDim = efilter.dimension(function(d) { return d.type == "EJ" ? d.weight : 6666; });
 
-    //S earch    
-    var groupArray = d3.set(data.neurons.map(function(d) { return d.group;} ).sort()).values();
-    $(function () {
-        $("#group1").autocomplete({source: groupArray});
-        $("#group2").autocomplete({source: groupArray});
-    });
-    var nameArray = d3.set(data.neurons.map(function(d) { return d.name;} ).sort()).values();
-    $(function () {
-        $("#search-node").autocomplete({source: nameArray});
-    });
+    // Set up auto-complete for group inputs
+    group_auto(data);
 
     update(data.neurons, data.synapses);
     filter(ndegVal, wminVal, jminVal);
@@ -286,18 +329,30 @@ function htmlForNode(d){
 }
 
 function htmlTabForNode(d){
-    var str = '<p><span class="badge stats-item">' + d.type + '</span></p>' +
-    '<ul class="list-group">' +
+    var str = '<p><span class="badge stats-item">' + d.type + '</span>'
+    var mods = null;
+    if ("modalities" in d) {
+        mods = d.modalities.split(", ");
+        for (var i = mods.length - 1; i >= 0; i--) {
+            str += '<span class="badge badge-sm stats-item">' + mods[i] + '</span>';
+        };
+    }
+    str += '</p>'
+    if ("functions" in d && d.functions != '') {
+        str +=  '<p><b>Functions</b>: ' + d.functions + '</p>';
+    }
+    str += '<ul class="list-group">' +
         '<li class="list-group-item"><span class="badge stats-item">' + d.group + '</span>Group</li>' +
         '<li class="list-group-item"><span class="badge stats-item">' + d.AYGanglionDesignation + '</span>Ganglion</li>' +
         '<li class="list-group-item"><span class="badge stats-item">' + d.inD + '</span>In Degree</li>' +
         '<li class="list-group-item"><span class="badge stats-item">' + d.outD + '</span>Out Degree</li>' +
         '<li class="list-group-item"><span class="badge stats-item">' + d.AYNbr + '</span>AYNbr</li>' +
+        (mods ? ('<li class="list-group-item"><span class="badge stats-item">' + d.organ + '</span>Organ</li>') : '') +
         '<li class="list-group-item"><a target="_blank" href="' + d.link + 
             '"><span class="glyphicon glyphicon-new-window pull-right"></span>In Worm Atlas </a></li>' +
         '<li class="list-group-item"><a target="_blank" href="http://wormweb.org/neuralnet#c=' + d.group +  
             '&m=1"><span class="glyphicon glyphicon-new-window pull-right"></span>In Worm Web </a></li>' +
-    '</ul>'
+        '</ul>'
     return str;
 }
 

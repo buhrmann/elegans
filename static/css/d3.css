@@ -11,6 +11,19 @@ body {
 
 .badge {
   font-size: inherit;
+  margin-bottom: 2px;
+  margin-left: 2px;
+}
+
+/* Auto-complete boxes height limited */
+.ui-autocomplete {
+    max-height: 500px;
+    overflow-y: auto;    
+    overflow-x: hidden;
+  }
+/* IE 6 doesn't support max-height we use height instead, but this forces the menu to always be this tall */
+* html .ui-autocomplete {
+  height: 500px;
 }
 
 .dl-horizontal dt {

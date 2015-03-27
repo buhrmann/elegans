@@ -17,6 +17,8 @@ kaiser_pos_lab_fnm = "DynamicConnectome/celegans277/celegans277labels.csv"
 ow_neurons_fnm = ""
 ww_neurons_fnm = "WormWeb/name_neurons.txt"
 
+sensors_fnm = "Self/Sensors.tsv"
+
 neuron_attrs = ["Neuron", "SomaPosition", "SomaRegion", "AYGanglionDesignation", "AYNbr"]
 
 
@@ -119,6 +121,16 @@ def wa_links_df():
         print [dfr.loc[x] for x in nans]
 
     return dfr
+
+
+# Turns our own generated sensor file into df
+def sensors_df():    
+    df = pd.io.parsers.read_csv(data_folder + sensors_fnm, sep="\t", comment="#", header=0, 
+        index_col=False, skipinitialspace=True, na_values=[''])
+    df = df.drop(["number", "location"], 1)
+    df.set_index("group", drop=True, inplace=True)
+    df.fillna('', inplace=True)
+    return df
 
 
 # Kaiser's positions are missing for some left-right symmetric neurons (AIBL, AIYL, SMDVL), 

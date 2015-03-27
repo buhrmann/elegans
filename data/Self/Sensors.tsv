@@ -1,0 +1,63 @@
+group	organ	modality	number	location	functions
+
+ADF	amphid	chemo	2	head	Dauer formation (entry or exit) (Bargmann and Horvitz, 1991). Positive chemotaxis to water-soluble attractants (Bargmann, 2006; Bergamasco and Bazzicalupo, 2006).
+ASE	amphid	chemo	2	head	Avoidance (copper, cadmium). ASE has a minor role (Sambongi et al., 1999). Interaction between food detection and egg-laying circuit. Positive chemotaxis to water-soluble attractants (Bargmann, 2006; Bergamasco and Bazzicalupo, 2006).
+ASG	amphid	chemo	2	head	Dauer formation (entry or exit) (Bargmann and Horvitz, 1991). Positive chemotaxis to water-soluble attractants (Bargmann, 2006; Bergamasco and Bazzicalupo, 2006). Involved in aggregation behavior (Rogers et al., 2006). 
+ASH	amphid	chemo, olfactory, noci, osmo, mechano	2	head	Avoidance from noxious odors (octanol, 2-nonanone), hyperosmolarity, mechanical stimuli (nose), SDS, heavy metals, bitter substances (quinine), and low pH (Kahn-Kirby and Bargmann, 2006).
+ASI	amphid	chemo	2	head	Dauer formation (entry or exit) (Bargmann and Horvitz, 1991). Positive chemotaxis to water-soluble attractants (Bargmann, 2006; Bergamasco and Bazzicalupo, 2006). Control of life span (Alcedo and Kenyon, 2004; Bargmann, 2006). Involved in aggregation behavior (Rogers et al., 2006). 
+ASJ	amphid	chemo	2	head	Dauer formation (entry or exit) (Bargmann and Horvitz, 1991). Positive chemotaxis to water-soluble attractants (Bargmann, 2006; Bergamasco and Bazzicalupo, 2006). Involved in aggregation behavior (Rogers et al., 2006). 
+ASK	amphid	chemo	2	head	Interaction between food detection and egg-laying circuit. Positive chemotaxis to water-soluble attractants (Bargmann, 2006; Bergamasco and Bazzicalupo, 2006). Involved in aggregation behavior (Rogers et al., 2006). Avoidance (quinine). Control of life span (Alcedo and Kenyon, 2004; Bargmann, 2006). 
+ADL	amphid	chemo	2	head	Negative chemotaxis. Avoidance of volatile repellents (octanol, 2-nonanone). ADL has a minor role. Contains unexposed ciliated endings in the lips. Putative harsh touch sensor in the head.
+
+AWA	amphid	olfactory	2	head	Positive chemotaxis to volatile attractants (diacetyl, pyrazine). Involved in aggregation behavior (Rogers et al., 2006). 
+AWB	amphid	olfactory	2	head	Negative chemotaxis. Avoidance of volatile repellents (octanol, 2-nonanone). 
+AWC	amphid	olfactory, thermo	2	head	Positive chemotaxis to volatile attractants (benzaldehyde, butanone, thiazole, isoamyl alcohol). Control of life span (Alcedo and Kenyon, 2004; Bargmann, 2006). Involved in aggregation behavior (Rogers et al., 2006). Supportive thermosensor (Mori and Ohshima, 1995; Kuhara et al, 2008; Ohnishi et al, 2011).
+
+AFD	amphid	thermo	2	head	Major thermosensor (Mori and Ohshima, 1995; Kuhara et al, 2008; Ohnishi et al, 2011).
+
+IL2	i-labial	chemo	6	head
+IL1	i-labial	mechano	6	head	Detect nose touch: head withdrawal response to dorsal or ventral nose touch.
+
+OLQ	o-labial	mechano	4	head	Detect nose touch: head withdrawal response to dorsal or ventral nose touch; reversal of movement in response to head-on collision. 
+OLL	o-labial	mechano	2	head	Putative mechanosensory.
+
+PHA	phasmid	chemo	2	tail	Negative chemotaxis (Hall and Russell, 1991).
+PHB	phasmid	chemo	2	tail	Negative chemotaxis (Hall and Russell, 1991).
+
+CEP	cephalic	mechano	4	head	Sense surface texture (e.g., roundness of bacteria, sephadex beads); food-mediated slowing response (Sawin et al., 2000). Area-restricted search (ARS) for food (decreasing acute-angled turns) (Hills et al., 2004).
+
+ADE	a-deirids	mechano	2	head	Sense surface texture (e.g., roundness of bacteria, sephadex beads); food-mediated slowing response (Sawin et al., 2000). Area-restricted search (ARS) for food (decreasing acute-angled turns) (Hills et al., 2004).
+PDE	p-deirids	mechano	2	body	Sense surface texture (e.g., roundness of bacteria, sephadex beads); food-mediated slowing response (Sawin et al., 2000). Area-restricted search (ARS) for food (decreasing acute-angled turns) (Hills et al., 2004).
+
+AQR	pseudocoelomic	oxygen	1	head	Social feeding (Hall and Russell, 1991; Cheung et al., 2005).
+PQR	pseudocoelomic	oxygen, mechano	1	tail	Social feeding (Hall and Russell, 1991; Cheung et al., 2005). Putative mechanosensor (Hilliard et al., 2002; Sengupta, 2002).
+URX	pseudocoelomic	oxygen	2	head
+
+BAG	lips	oxygen	2	head	
+
+FLP	ext-branched	thermonoci, mechano, proprio	2	head	Detect nose touch: reversal of movement in response to head-on collision. 
+PVD	ext-branched	thermonoci, mechano, proprio	2	body	Detect harsh body touch, e.g., with a platinum wire (O’Hagan and Chalfie, 2006). 
+
+PHC	tailtip	thermonoci	2	tail	
+
+ALM	mt-bodywall	mechano	2	body	Touch receptor neurons that function in avoidance response to gentle body touch. Activation of this circuit also resets defecation cycle and suppresses pharyngeal pumping, foraging head movement, and egg-laying. 
+AVM	mt-bodywall	mechano	1	body	Touch receptor neurons that function in avoidance response to gentle body touch. Activation of this circuit also resets defecation cycle and suppresses pharyngeal pumping, foraging head movement, and egg-laying. 
+PLM	mt-bodywall	mechano	2	tail	Touch receptor neurons that function in avoidance response to gentle body touch. Activation of this circuit also resets defecation cycle and suppresses pharyngeal pumping, foraging head movement, and egg-laying. 
+PVM	mt-bodywall	mechano	1	body	Touch receptor neurons that function in avoidance response to gentle body touch. Activation of this circuit also resets defecation cycle and suppresses pharyngeal pumping, foraging head movement, and egg-laying. 
+
+DVA	bodywall	proprio	1	tail
+PVC	bodywall	proprio	2	tail	Detect harsh body touch, e.g., with a platinum wire (O’Hagan and Chalfie, 2006). 
+ALN	bodywall	proprio	2	tail	Long, thin tailspike is thought to be a large sensory organ without the sheath and socket cells that characterize normal sensilla. May be sensing flexion of tail tip (Bird and Bird, 1991).
+PLN	bodywall	proprio	2	tail	Long, thin tailspike is thought to be a large sensory organ without the sheath and socket cells that characterize normal sensilla. May be sensing flexion of tail tip (Bird and Bird, 1991).
+
+SMB	head	proprio	4	head
+SMD	head	proprio	4	head
+SAA	head	proprio	4	head
+
+AVG	tailtip	proprio	1	head
+PDB	tailtip	proprio	1	tail
+PHC	tailtip	proprio	2	tail
+PVR	tailtip	proprio	1	tail
+ALN	tailtip	proprio	2	tail
+PLN	tailtip	proprio	2	tail
+PLM	tailtip	proprio	4	head

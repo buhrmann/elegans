@@ -51,14 +51,14 @@ def subgraph():
     gr2 = request.args.get('group2', "no group2", type=str)
     gr2 = [s.strip() for s in gr2.split(",") if not s.isspace()]
     rec = request.args.get('receptors', "", type=str)
-    rec = [s.strip() for s in rec.split(",") if not s.isspace()]
-    if rec == ['']: 
-        rec = None
+    rec = [s.strip() for s in rec.split(",") if s and not s.isspace()] # empty list (falsy) when none
+    mus = request.args.get('muscles', "", type=str)
+    mus = [s.strip() for s in mus.split(",") if s and not s.isspace() ] # empty list (falsy) when none
     min_ws = request.args.get('minWeightS', 1, type=int)
     min_wj = request.args.get('minWeightJ', 1, type=int)
     max_l = request.args.get('maxLength', 2, type=int)
     path_dir = request.args.get('dir', 'uni', type=str)
-    res = neo.subgraph(gr1, gr2, max_l, min_ws, min_wj, path_dir, rec)
+    res = neo.subgraph(gr1, gr2, max_l, min_ws, min_wj, path_dir, rec, mus)
     NODE_CACHE = res['neurons']
     REL_CACHE = res['synapses']
     return jsonify(result=res)
@@ -68,7 +68,9 @@ def subgraph():
 def expand():
     global NODE_CACHE, REL_CACHE
     names = request.args.getlist('names[]')
-    res = neo.all_cons_for_set(names)    
+    mus = request.args.get('muscles', "", type=str)
+    mus = [s.strip() for s in mus.split(",") if s and not s.isspace() ] # empty list (falsy) when none
+    res = neo.all_cons_for_set(names, mus)
     NODE_CACHE = res['neurons']
     REL_CACHE = res['synapses']    
     return jsonify(result=res)

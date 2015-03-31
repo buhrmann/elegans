@@ -58,6 +58,15 @@
             <label for="rec-sel">Include these receptors:</label>
             <input id="rec-sel" type="search" placeholder="Receptors" class="form-control input-sm"/>
           </div>
+
+          <div class="form-group">
+            <label for="mus-sel">Include these muscles:</label>
+            <div>
+              <label class="checkbox-inline" ><input type="checkbox" id="mhead-check">Head</label>
+              <label class="checkbox-inline"><input type="checkbox" id="mneck-check">Neck</label>
+              <label class="checkbox-inline"><input type="checkbox" id="mbody-check">Body</label>
+            </div>
+          </div>
         
           <div class="form-group" id="subw">
             <label for="subwslider">Synapse min weight [1-10]: </label> <output for="subwSlider" id="subwlabel">1</output>
@@ -144,8 +153,10 @@
         <div id="statpanel" class="panel-collapse collapse in">
           <ul class="list-group list-group-sm">
             <li class="list-group-item"><span class="badge badge-sm stats-item" id="stats-n">14</span>Neurons</li>
+            <li class="list-group-item"><span class="badge stats-item" id="stats-m">7</span>Muscles</li>
             <li class="list-group-item"><span class="badge stats-item" id="stats-s">7</span>Chemical synapses</li>
             <li class="list-group-item"><span class="badge stats-item" id="stats-ej">7</span>Electrical junctions</li>
+            <li class="list-group-item"><span class="badge stats-item" id="stats-nmj">7</span>NM junctions</li>
           </ul>
         </div>
       </div>
@@ -157,7 +168,7 @@
       </div>
 
       <div class="formpanel">
-        <h3>Neuron <span id="node-heading"></span>
+        <h3><span id="node-heading">Node info</span>
           <small><a href="#nodepanel" data-toggle="collapse" aria-expanded="true" aria-controls="nodepanel">
           <span class='glyphicon glyphicon-resize-small pull-right'></span>
           </a></small>

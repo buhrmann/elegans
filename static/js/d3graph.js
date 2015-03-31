@@ -135,10 +135,14 @@ graph = function(id, d) {
     nodeLayer = container.append("g");
 
     // Scales
-    //nodeColorScale = d3.scale.category20();
-    colors = ["#00ADEF", "#ED008C", "#F5892D", "#BBCB5F", "#999", "#ccc"];
+    col_sensory = "#ED008C"
+    col_motor = "#F5892D"
+    col_inter = "#00ADEF"
+    col_sensmot = d3.rgb(d3.interpolateRgb(col_sensory, col_motor)(0.5)).brighter(2).toString();
+    col_sensint = d3.rgb(d3.interpolateRgb(col_sensory, col_inter)(0.5)).brighter(2).toString();
+    col_intmot = d3.rgb(d3.interpolateRgb(col_inter, col_motor)(0.5)).brighter(1).toString();
+    colors = [col_inter, col_sensory, col_motor, col_intmot, col_sensint, col_sensmot, "#bbb"];
     nodeColorScale = d3.scale.ordinal().range(colors);
-    //nodeColorScale = d3.scale.ordinal().range(colorbrewer["Accent"][6].reverse());
     
     var degreeDomain = d3.extent(data.neurons, function(n) { return n.D; });
     nodeRadiusScale = d3.scale.linear().domain(degreeDomain).range([10,25]);
@@ -225,6 +229,7 @@ function updateCrossFilter(n, s) {
     update([],[]);
     update(n, s);
     filter(ndegVal, wminVal, jminVal);
+
     // Warm-start
     for (i = 0; i < 10; i++)
         force.tick();
@@ -256,8 +261,9 @@ function applyPreset(id) {
 
 
 function buildAdjacency() {
-    data.neurons.forEach(function (d) { linked[d.id + "," + d.id] = true; });
-    data.synapses.forEach(function (d) { linked[d.from + "," + d.to] = true; });
+    linked = {}
+    nodes.forEach(function (d) { linked[d.id + "," + d.id] = true; });
+    links.forEach(function (d) { linked[d.from + "," + d.to] = true; });
 }
 
 function neighboring(a, b) {
@@ -342,9 +348,13 @@ function filter(ndeg, wmin, jmin) {
         $("#search").autocomplete({source: optArray});
     });
  
-    document.getElementById('stats-n').innerHTML = n.length;
-    document.getElementById('stats-s').innerHTML = d3.sum(e, function(d) { return d.type!="EJ" ? 1 : 0 });
+
+    var num_neurons = d3.sum(n, function(d) { return d.type!="muscle" ? 1 : 0 });
+    document.getElementById('stats-n').innerHTML = num_neurons;
+    document.getElementById('stats-m').innerHTML = n.length - num_neurons;
+    document.getElementById('stats-s').innerHTML = d3.sum(e, function(d) { return d.type=="S" || d.type=="Sp" ? 1 : 0 });
     document.getElementById('stats-ej').innerHTML = d3.sum(e, function(d) { return d.type=="EJ" ? 1 : 0 });
+    document.getElementById('stats-nmj').innerHTML = d3.sum(e, function(d) { return d.type=="NMJ" ? 1 : 0 });
 }
 
 
@@ -359,6 +369,7 @@ function htmlForNode(d){
 
 function htmlTabForNode(d){
     var str = '<p><span class="badge stats-item">' + d.type + '</span>'
+    
     var mods = null;
     if ("modalities" in d) {
         mods = d.modalities.split(", ");
@@ -367,21 +378,31 @@ function htmlTabForNode(d){
         };
     }
     str += '</p>'
+
     if ("functions" in d && d.functions != '') {
         str +=  '<p><b>Functions</b>: ' + d.functions + '</p>';
     }
-    str += '<ul class="list-group">' +
-        '<li class="list-group-item"><span class="badge stats-item">' + d.group + '</span>Group</li>' +
-        '<li class="list-group-item"><span class="badge stats-item">' + d.AYGanglionDesignation + '</span>Ganglion</li>' +
-        '<li class="list-group-item"><span class="badge stats-item">' + d.inD + '</span>In Degree</li>' +
-        '<li class="list-group-item"><span class="badge stats-item">' + d.outD + '</span>Out Degree</li>' +
-        '<li class="list-group-item"><span class="badge stats-item">' + d.AYNbr + '</span>AYNbr</li>' +
-        (mods ? ('<li class="list-group-item"><span class="badge stats-item">' + d.organ + '</span>Organ</li>') : '') +
-        '<li class="list-group-item"><a target="_blank" href="' + d.link + 
-            '"><span class="glyphicon glyphicon-new-window pull-right"></span>In Worm Atlas </a></li>' +
-        '<li class="list-group-item"><a target="_blank" href="http://wormweb.org/neuralnet#c=' + d.group +  
-            '&m=1"><span class="glyphicon glyphicon-new-window pull-right"></span>In Worm Web </a></li>' +
-        '</ul>'
+
+    str += '<ul class="list-group">'
+    if (d.type == 'muscle') {
+        str +=
+            '<li class="list-group-item"><span class="badge stats-item">' + d.part + '</span>Location</li>' +
+            '<li class="list-group-item"><span class="badge stats-item">' + d.inD + '</span>In Degree</li>';    
+    }
+    else {
+        str +=
+            '<li class="list-group-item"><span class="badge stats-item">' + d.group + '</span>Group</li>' +
+            '<li class="list-group-item"><span class="badge stats-item">' + d.AYGanglionDesignation + '</span>Ganglion</li>' +
+            '<li class="list-group-item"><span class="badge stats-item">' + d.inD + '</span>In Degree</li>' +
+            '<li class="list-group-item"><span class="badge stats-item">' + d.outD + '</span>Out Degree</li>' +
+            '<li class="list-group-item"><span class="badge stats-item">' + d.AYNbr + '</span>AYNbr</li>' +
+            (mods ? ('<li class="list-group-item"><span class="badge stats-item">' + d.organ + '</span>Organ</li>') : '') +
+            '<li class="list-group-item"><a target="_blank" href="' + d.link + 
+                '"><span class="glyphicon glyphicon-new-window pull-right"></span>In Worm Atlas </a></li>' +
+            '<li class="list-group-item"><a target="_blank" href="http://wormweb.org/neuralnet#c=' + d.group +  
+                '&m=1"><span class="glyphicon glyphicon-new-window pull-right"></span>In Worm Web </a></li>';
+    }
+    str += '</ul>'
     return str;
 }
 
@@ -405,7 +426,7 @@ function showPopover(d, dir) {
 
 function removeNodeInfo() {
     document.getElementById("nodeinfo").innerHTML = "Click to select...";
-    document.getElementById("node-heading").innerHTML = "";
+    document.getElementById("node-heading").innerHTML = "Node Info";
 }
 
 function showNodeInfo(d) {
@@ -418,6 +439,7 @@ function showNodeInfo(d) {
 update = function(n, l) {
     nodes = n;
     links = l;
+    buildAdjacency();
 
     var c = Math.min(-700 + wminVal * 100, -250);
     var ld = Math.max(120 - wminVal * 10, 40);
@@ -442,7 +464,7 @@ update = function(n, l) {
         .on("mouseover", linkMouseOver)
         .on("mouseout", linkMouseOut);
 
-    a.filter(function(d) { return d.type != "EJ"})
+    a.filter(function(d) { return d.type == "S" || d.type == "Sp"})
         .attr("marker-mid", function(d) { return "url(#" + nodeColorScale(d.source.type) + ")" });
 
     // Update nodes
@@ -510,7 +532,9 @@ tick = function() {
         var k = 75 * e.alpha;
         nodes.forEach(function(n, i) {
             if(! n.fixed) {
-                if (n.type.indexOf("sensory") > -1)// && n.y > 400) 
+                if (n.type.indexOf("muscle") > -1)// && n.y > 400) 
+                    n.y += 2*k;
+                else if (n.type.indexOf("sensory") > -1)// && n.y > 400) 
                     n.y -= k;
                 else if (n.type.indexOf("motor") > -1)// && n.y < 600) 
                     n.y += k;
@@ -660,10 +684,12 @@ collide = function(alpha) {
     };
 }
 
+
 function toggleSelected(i, b) {
     node.filter(function(n) { return n.id == i; })
         .select("circle").classed("selected", b);
 }
+
 
 function connectedNodes(d) {
     if (d != null) {
@@ -749,11 +775,14 @@ function initNodePos(neurons) {
     neurons.forEach(function(d) { 
         if (d.type.indexOf("sensory") > -1)
             d.y = 0;
-        else if (d.type.indexOf("motor") > -1)
-            d.y = height;
         else if (d.type.indexOf("inter") > -1)
             d.y = height/2;
-        if (d.name.slice(-1) == "L")
+        else if (d.type.indexOf("motor") > -1)
+            d.y = 3*height/4;
+        else if (d.type.indexOf("muscle") > -1)
+            d.y = height;
+
+        if (d.name.slice(-2,-1) == "L")
             d.x = 0.25 * width;
         else if (d.name.slice(-1) == "R")
             d.x = 0.75 * width;
@@ -796,9 +825,14 @@ function graphReset() {
 function expand() {
     if (fetched) {
         var name_list = nodes.map(function(d) { return d.name; });
+        var muscles = ($('#mhead-check').prop('checked') ? "head," : "") +
+                  ($('#mneck-check').prop('checked') ? "neck," : "") +
+                  ($('#mbody-check').prop('checked') ? "body" : "");
+    
         document.getElementById("expandbutton").innerHTML = '<img id="ajaxloader" src="/static/images/ajax-loader.gif">'
         $.getJSON($SCRIPT_ROOT + '/_expand', {
-            names: name_list
+            names: name_list,
+            muscles: muscles
           }, function(d) {
             data = d.result;
             setSlider("jmin", jminVal=0);
@@ -821,6 +855,10 @@ function subGraph() {
     var l = document.getElementById('subpslider').value;
     var dir = $('#dirButton').text();
     dir = dir == "↓" ? "uni" : "bi";
+    var muscles = ($('#mhead-check').prop('checked') ? "head," : "") +
+                  ($('#mneck-check').prop('checked') ? "neck," : "") +
+                  ($('#mbody-check').prop('checked') ? "body" : "");
+    
     document.getElementById("fetchbutton").innerHTML = '<img id="ajaxloader" src="/static/images/ajax-loader.gif">'
     $.getJSON($SCRIPT_ROOT + '/_subgraph', {
         group1: g1,
@@ -829,7 +867,8 @@ function subGraph() {
         minWeightS: ws,
         minWeightJ: wj,
         maxLength: l,
-        dir: dir
+        dir: dir,
+        muscles: muscles
       }, function(d) {
         data = d.result;
         jmin = wmin = ndeg = 0;

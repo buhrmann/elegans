@@ -106,6 +106,7 @@ def db_add_muscle_synapses(clear):
     for idx, row in conns.iterrows():
         transx.append(statement, {"neuron":row['Neuron'], "muscle":row['Muscle'], "w":row["Weight"]})
     transx.commit()
+    db_set_node_degrees()
 
 
 def db_set_node_degrees():
@@ -185,22 +186,34 @@ def synapses_d3(neuron_list, min_weight=1):
     return synapse_list
 
 
-def all_cons_for_set(neuron_set):
+# To do: make sure merged list has no duplicates !
+def all_cons_for_set(neuron_set, mus=None):
     """ Return the subgraph consisting of all connections between specified list of neurons. """
-    #q = "MATCH (n)-[r]-(m) WHERE n.name IN {g} AND m.name IN {g} RETURN DISTINCT r"
     query = "MATCH (n:Neuron)-[r]-(m:Neuron) WHERE n.name IN {g} AND m.name IN {g} RETURN COLLECT(DISTINCT r), COLLECT(DISTINCT n)"
     res = GRAPH.query(query, params={"g":neuron_set})[0]
-
     res_syns = res[0]
     res_nodes = res[1]
-    synapse_list = []
-    neuron_list = []
 
+    # Get muscles also if requested
+    if mus:
+        query =  "MATCH (n:Neuron) WHERE n.name IN {g} "
+        query += "MATCH (m:Muscle) WHERE m.part IN {musloc}"
+        query += "MATCH p=(n)-[r]-(m)"
+        query += "RETURN COLLECT(DISTINCT r) AS dr, COLLECT(DISTINCT m) AS ms"
+        parameters = {"g":neuron_set, "musloc":mus}
+        res = GRAPH.query(query, params=parameters)[0]
+        res_syns.extend(res[0])
+        res_nodes.extend(res[1])
+    
+    neuron_list = []
     for row in res_nodes:
         neuron = row['data']
         neuron['id'] = row['metadata']['id']
+        if 'Muscle' in row['metadata']['labels']:
+            neuron['type'] = 'muscle'
         neuron_list.append(neuron)
 
+    synapse_list = []
     for row in res_syns:
         synapse = row['data']
         synapse['from'] = int(row['start'].rsplit("/", 1)[1])
@@ -213,9 +226,11 @@ def all_cons_for_set(neuron_set):
     return {"synapses":synapse_list, "neurons":neuron_list}
 
 
-def subgraph(gr1, gr2, max_length=2, min_ws=2, min_wj=2, path_dir='uni', rec=None):
+# To do: make sure merged list has no duplicates ! 
+def subgraph(gr1, gr2, max_length=2, min_ws=2, min_wj=2, path_dir='uni', rec=None, mus=None):
     """ Return the subgraph connecting neurons in group1 with neurons in group2 """
-    
+
+    # Get neurons and synpases
     path_dir = '->' if path_dir == 'uni' else '-'
     query = "MATCH (n1:Neuron) WHERE ( (n1.group IN {g1}) "
     if rec:
@@ -228,19 +243,34 @@ def subgraph(gr1, gr2, max_length=2, min_ws=2, min_wj=2, path_dir='uni', rec=Non
               "UNWIND dr AS udr UNWIND ns AS uns "
               "RETURN COLLECT(DISTINCT udr), COLLECT(DISTINCT uns)")
 
-    #print query
     parameters = {"g1":gr1, "g2":gr2, "ws":min_ws, "wj":min_wj, "l":max_length, "recs":rec}    
     res = GRAPH.query(query, params=parameters)[0]
     res_syns = res[0]
     res_nodes = res[1]
-    synapse_list = []
-    neuron_list = []
+
+    # Get muscles also if requested
+    neuron_names = [row['data']['name'] for row in res_nodes]
+    if mus:
+        query =  "MATCH (n:Neuron) WHERE n.name IN {names}"
+        query += "MATCH (m:Muscle) WHERE m.part IN {musloc}"
+        query += "MATCH p=(n)-[r]-(m)"
+        query += "RETURN COLLECT(DISTINCT r) AS dr, COLLECT(DISTINCT m) AS ms"
+        parameters = {"names":neuron_names, "musloc":mus}    
+        res = GRAPH.query(query, params=parameters)[0]
+        res_syns.extend(res[0])
+        res_nodes.extend(res[1])
     
+    # Construct neuron and synapse list in d3-compatible format
+    neuron_list = []
     for row in res_nodes:
         neuron = row['data']
         neuron['id'] = row['metadata']['id']
+        if 'Muscle' in row['metadata']['labels']:
+            neuron['type'] = 'muscle'
         neuron_list.append(neuron)
+        #print neuron
 
+    synapse_list = []
     for row in res_syns:
         synapse = row['data']
         # Connected nodes are referenced by their index in start and end properties (within url)
@@ -250,6 +280,7 @@ def subgraph(gr1, gr2, max_length=2, min_ws=2, min_wj=2, path_dir='uni', rec=Non
         synapse['target'] = [i for i, n in enumerate(neuron_list) if n['id'] == synapse['to']][0]
         synapse['id'] = row['metadata']['id']
         synapse_list.append(synapse)
+        #print synapse
 
     return {"synapses":synapse_list, "neurons":neuron_list}
 

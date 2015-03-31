@@ -10,7 +10,9 @@ from urlparse import urlparse, urlunparse
 
 import preproc
 
-
+# ------------------------------------------------------------------------------------------------
+# DB connections
+# ------------------------------------------------------------------------------------------------
 def graph_p2():
     """ Get connection to graph via py2neo. """
     graphenedb_url = os.environ.get("GRAPHENEDB_URL", "http://localhost:7474/")
@@ -30,7 +32,9 @@ def graph_rest():
 
 GRAPH = graph_rest()
 
-
+# ------------------------------------------------------------------------------------------------
+# DB creation
+# ------------------------------------------------------------------------------------------------
 def db_add_neurons(clear):
     """ Import neurons into DB from local files. """
     graph = graph_p2()
@@ -45,6 +49,23 @@ def db_add_neurons(clear):
         params['name'] = name
         transx.append(statement, {"props":params})
     transx.commit()
+
+
+def db_add_muscles(clear):
+    """ Import muscles into DB from local file. """
+    graph = graph_p2()
+    if clear:
+        statement = "MATCH (n:Muscle) DELETE n"
+        graph.cypher.run(statement)
+
+    muscles = preproc.muscles_df()
+    transx = graph.cypher.begin()
+    statement = "CREATE (n:Muscle {props})"
+    for name, params in muscles.iterrows():
+        params = params.to_dict()
+        params['name'] = name
+        transx.append(statement, {"props":params})
+    transx.commit()    
 
 
 def db_add_sensory_info():
@@ -72,6 +93,21 @@ def db_add_synapses(clear):
     db_set_node_degrees()
 
 
+def db_add_muscle_synapses(clear):
+    """ Import muscle synapses into DB from local files. """
+    graph = graph_p2()
+    if clear:
+        statement = "MATCH (n:Neuron)-[r]-(m:Muscle) DELETE r"
+        graph.cypher.run(statement)
+
+    conns = preproc.muscle_conns_df()
+    transx = graph.cypher.begin()
+    statement = "MATCH (n:Neuron {name:{neuron}}), (m:Muscle {name:{muscle}}) CREATE (n)-[s:Synapse {name:n.name+'->'+m.name, type:'NMJ', weight:{w}}]->(m)" 
+    for idx, row in conns.iterrows():
+        transx.append(statement, {"neuron":row['Neuron'], "muscle":row['Muscle'], "w":row["Weight"]})
+    transx.commit()
+
+
 def db_set_node_degrees():
     """ Calculate and set the in, out and total node degree for each node in the DB. """
     syn_in = "MATCH (n) OPTIONAL MATCH (n)<-[r]-(m) WITH n as n, COUNT(r) as inD SET n.inD=inD"
@@ -82,6 +118,9 @@ def db_set_node_degrees():
     GRAPH.query(total)
 
 
+# ------------------------------------------------------------------------------------------------
+# DB queries
+# ------------------------------------------------------------------------------------------------
 def neurons():
     """ Return all neurons in DB as list of dicts (d3.js format). """
     query = "MATCH (n:Neuron) return n"
@@ -149,7 +188,7 @@ def synapses_d3(neuron_list, min_weight=1):
 def all_cons_for_set(neuron_set):
     """ Return the subgraph consisting of all connections between specified list of neurons. """
     #q = "MATCH (n)-[r]-(m) WHERE n.name IN {g} AND m.name IN {g} RETURN DISTINCT r"
-    query = "MATCH (n)-[r]-(m) WHERE n.name IN {g} AND m.name IN {g} RETURN COLLECT(DISTINCT r), COLLECT(DISTINCT n)"
+    query = "MATCH (n:Neuron)-[r]-(m:Neuron) WHERE n.name IN {g} AND m.name IN {g} RETURN COLLECT(DISTINCT r), COLLECT(DISTINCT n)"
     res = GRAPH.query(query, params={"g":neuron_set})[0]
 
     res_syns = res[0]

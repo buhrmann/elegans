@@ -10,6 +10,7 @@ from bs4 import BeautifulSoup as bs
 data_folder = "data/"
 chen_neurons_fnm = "ChenVarshney/NeuronType.xls"
 chen_conns_fnm = "ChenVarshney/NeuronConnect.xls"
+chen_muscles_fnm = "ChenVarshney/NeuronFixedPoints.xls"
 
 kaiser_pos_fnm = "DynamicConnectome/celegans277/celegans277positions.csv"
 kaiser_pos_lab_fnm = "DynamicConnectome/celegans277/celegans277labels.csv"
@@ -22,6 +23,9 @@ sensors_fnm = "Self/Sensors.tsv"
 neuron_attrs = ["Neuron", "SomaPosition", "SomaRegion", "AYGanglionDesignation", "AYNbr"]
 
 
+# ------------------------------------------------------------------------------------------------------------
+# Helpers
+# ------------------------------------------------------------------------------------------------------------
 def zero_lead(num_str):
     """ Add leading zero to single digits at the end of a string """
     if num_str[-1].isdigit() and not num_str[-2].isdigit():
@@ -64,6 +68,27 @@ def expand_type_abbr(name):
     return sep.join(types)
 
 
+def muscle_to_bodypart(name):
+    """ Return name of body part (head, neck or body) for given muscle name (e.g. MDL3 -> head) """
+    # Get number suffix: last two characters if double digit else last digit 
+    if name[-2].isdigit():
+        num = int(name[-2:])  
+    elif name[-1].isdigit():
+        num = int(name[-1:])
+    else:
+        return name
+
+    if num <= 4:
+        return "head"
+    elif num <= 8:
+        return "neck"
+    else:
+        return "body"
+
+
+# ------------------------------------------------------------------------------------------------------------
+# Importers
+# ------------------------------------------------------------------------------------------------------------
 def kaiser_positions_df():
     """ Return a pandas DF containing 2d positions from Kaiser indexed by neuron label """
     pos_labels = pd.io.parsers.read_csv(data_folder + kaiser_pos_lab_fnm, header=None)
@@ -133,6 +158,23 @@ def sensors_df():
     return df
 
 
+def muscles_df():
+    """ Return a pandas DF containing muscle information from Chen indexed by muscle label """
+    df = pd.io.excel.read_excel(data_folder + chen_muscles_fnm, sheetname=0, index_col=None, header=0)     
+    df.columns = [x.replace(" ", "") for x in df.columns]
+    df.Landmark = [remove_leading_zero(x) for x in df.Landmark]
+    #df.set_index("Neuron", drop=True, inplace=True)
+    
+    # Extract only muscles
+    df = df[df.Landmark.str.startswith("M")]
+    muscles = df.Landmark.unique()
+    pos = [df[df.Landmark == m].LandmarkPosition.iloc[0] for m in muscles] # Extract position from df
+    mu = pd.DataFrame({'name':muscles, 'pos':pos})
+    mu['part'] = mu.name.apply(muscle_to_bodypart)
+    mu.set_index('name', drop=True, inplace=True)
+    return mu
+
+
 # Kaiser's positions are missing for some left-right symmetric neurons (AIBL, AIYL, SMDVL), 
 # so we substitute the right "mirror" neuron, which is ok anyway, since the left-right 
 # coordinates are not provided anyway. Equally, Chen/Varshney's data doesn't have a VC06 neuron. 
@@ -182,3 +224,14 @@ def conns_df():
     dfr["Neuron2"] = [remove_leading_zero(x) for x in dfr["Neuron2"]]
     dfr = dfr[(dfr['Type'] != 'R') & (dfr['Type'] != 'Rp') & (dfr['Type'] != 'NMJ')]
     return dfr
+
+
+def muscle_conns_df():
+    """ Return a pandas DF of connections between motor neurons and muscles in from->to format """
+    df = pd.io.excel.read_excel(data_folder + chen_muscles_fnm, sheetname=0, index_col=None, header=0)
+    df.drop('Landmark Position', axis=1, inplace=True)
+    df = df[df.Landmark.str.startswith("M")] # only muscles (also contains sensory landmarks)
+    df.Landmark = [remove_leading_zero(x) for x in df.Landmark]
+    df.Neuron = [remove_leading_zero(x) for x in df.Neuron]
+    df.rename(columns={'Landmark':'Muscle'}, inplace=True)
+    return df

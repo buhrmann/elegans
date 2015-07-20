@@ -65,7 +65,7 @@ def db_add_muscles(clear):
         params = params.to_dict()
         params['name'] = name
         transx.append(statement, {"props":params})
-    transx.commit()    
+    transx.commit()
 
 
 def db_add_sensory_info():
@@ -86,7 +86,7 @@ def db_add_synapses(clear):
 
     conns = preproc.conns_df()
     transx = graph.cypher.begin()
-    statement = "MATCH (n1:Neuron {name:{nm1}}), (n2:Neuron {name:{nm2}}) CREATE (n1)-[s:Synapse {name:n1.name+'->'+n2.name, type:{tp}, weight:{w}}]->(n2)" 
+    statement = "MATCH (n1:Neuron {name:{nm1}}), (n2:Neuron {name:{nm2}}) CREATE (n1)-[s:Synapse {name:n1.name+'->'+n2.name, type:{tp}, weight:{w}}]->(n2)"
     for idx, row in conns.iterrows():
         transx.append(statement, {"nm1":row['Neuron1'], "nm2":row['Neuron2'], "tp":row["Type"], "w":row["Nbr"]})
     transx.commit()
@@ -102,7 +102,7 @@ def db_add_muscle_synapses(clear):
 
     conns = preproc.muscle_conns_df()
     transx = graph.cypher.begin()
-    statement = "MATCH (n:Neuron {name:{neuron}}), (m:Muscle {name:{muscle}}) CREATE (n)-[s:Synapse {name:n.name+'->'+m.name, type:'NMJ', weight:{w}}]->(m)" 
+    statement = "MATCH (n:Neuron {name:{neuron}}), (m:Muscle {name:{muscle}}) CREATE (n)-[s:Synapse {name:n.name+'->'+m.name, type:'NMJ', weight:{w}}]->(m)"
     for idx, row in conns.iterrows():
         transx.append(statement, {"neuron":row['Neuron'], "muscle":row['Muscle'], "w":row["Weight"]})
     transx.commit()
@@ -122,6 +122,22 @@ def db_set_node_degrees():
 # ------------------------------------------------------------------------------------------------
 # DB queries
 # ------------------------------------------------------------------------------------------------
+def group_names():
+    query = "MATCH (n:Neuron) return DISTINCT n.group"
+    res = GRAPH.query(query)
+    return [r[0] for r in res]
+
+
+def neuron_names(groups=None):
+    if groups:
+        query = "MATCH (n:Neuron) WHERE n.group IN {g} RETURN DISTINCT n.name"
+        res = GRAPH.query(query, params={"g":groups})
+    else:
+        query = "MATCH (n:Neuron) return DISTINCT n.name"
+        res = GRAPH.query(query)
+    return [r[0] for r in res]
+
+
 def neurons():
     """ Return all neurons in DB as list of dicts (d3.js format). """
     query = "MATCH (n:Neuron) return n"
@@ -152,7 +168,7 @@ def synapses():
     """ Return all synapses in DB as list of dicts. """
     query = "MATCH (n1:Neuron)-[s:Synapse]->(n2:Neuron) return {from:n1.name, to:n2.name, type:s.type, weight:s.weight}"
     res = GRAPH.query(query)
-    return [row[0] for row in res] 
+    return [row[0] for row in res]
 
 
 def synapses_sigma(neurons, min_weight=0):
@@ -204,7 +220,7 @@ def all_cons_for_set(neuron_set, mus=None):
         res = GRAPH.query(query, params=parameters)[0]
         res_syns.extend(res[0])
         res_nodes.extend(res[1])
-    
+
     neuron_list = []
     for row in res_nodes:
         neuron = row['data']
@@ -226,7 +242,7 @@ def all_cons_for_set(neuron_set, mus=None):
     return {"synapses":synapse_list, "neurons":neuron_list}
 
 
-# To do: make sure merged list has no duplicates ! 
+# To do: make sure merged list has no duplicates !
 def subgraph(gr1, gr2, max_length=2, min_ws=2, min_wj=2, path_dir='uni', rec=None, mus=None):
     """ Return the subgraph connecting neurons in group1 with neurons in group2 """
 
@@ -243,7 +259,7 @@ def subgraph(gr1, gr2, max_length=2, min_ws=2, min_wj=2, path_dir='uni', rec=Non
               "UNWIND dr AS udr UNWIND ns AS uns "
               "RETURN COLLECT(DISTINCT udr), COLLECT(DISTINCT uns)")
 
-    parameters = {"g1":gr1, "g2":gr2, "ws":min_ws, "wj":min_wj, "l":max_length, "recs":rec}    
+    parameters = {"g1":gr1, "g2":gr2, "ws":min_ws, "wj":min_wj, "l":max_length, "recs":rec}
     res = GRAPH.query(query, params=parameters)[0]
     res_syns = res[0]
     res_nodes = res[1]
@@ -255,11 +271,11 @@ def subgraph(gr1, gr2, max_length=2, min_ws=2, min_wj=2, path_dir='uni', rec=Non
         query += "MATCH (m:Muscle) WHERE m.part IN {musloc}"
         query += "MATCH p=(n)-[r]-(m)"
         query += "RETURN COLLECT(DISTINCT r) AS dr, COLLECT(DISTINCT m) AS ms"
-        parameters = {"names":neuron_names, "musloc":mus}    
+        parameters = {"names":neuron_names, "musloc":mus}
         res = GRAPH.query(query, params=parameters)[0]
         res_syns.extend(res[0])
         res_nodes.extend(res[1])
-    
+
     # Construct neuron and synapse list in d3-compatible format
     neuron_list = []
     for row in res_nodes:
@@ -287,42 +303,42 @@ def subgraph(gr1, gr2, max_length=2, min_ws=2, min_wj=2, path_dir='uni', rec=Non
 
     # MATCH (n), (n2) WHERE n.group="ADA" AND n2.group="AVA" MATCH (n)-[r*1..2]->(n2) RETURN n, n2, COUNT(r)
     # MATCH (n), (n2) WHERE n.group="ADA" AND n2.group="AVA" MATCH p=(n)-[r*1..3]->(n2) WHERE ALL(c in r WHERE c.weight > 1) RETURN p, LENGTH(p)
-    # MATCH (n1), (n2) WHERE n1.group="ADA" AND n2.group="AVA" 
-    #     MATCH p=(n1)-[r*1..3]->(n2) 
-    #         WHERE ALL(c in r WHERE c.weight > 1) 
-    #         AND ALL(n in NODES(p) WHERE 1=length(filter(m in NODES(p) WHERE m=n))) 
+    # MATCH (n1), (n2) WHERE n1.group="ADA" AND n2.group="AVA"
+    #     MATCH p=(n1)-[r*1..3]->(n2)
+    #         WHERE ALL(c in r WHERE c.weight > 1)
+    #         AND ALL(n in NODES(p) WHERE 1=length(filter(m in NODES(p) WHERE m=n)))
     #         RETURN p
 
-    # MATCH (n1), (n2) WHERE n1.group="ADA" AND n2.group="AVA" 
-    #     MATCH p=(n1)-[r*1..3]->(n2) 
-    #         WHERE ALL(c in r WHERE c.weight > 1) 
-    #         AND ALL(n in NODES(p) WHERE 1=length(filter(m in NODES(p) WHERE m=n))) 
-    #             WITH COLLECT(DISTINCT NODES(p)) AS cnodes 
-    #             UNWIND cnodes as unodes UNWIND(unodes) as uunodes 
+    # MATCH (n1), (n2) WHERE n1.group="ADA" AND n2.group="AVA"
+    #     MATCH p=(n1)-[r*1..3]->(n2)
+    #         WHERE ALL(c in r WHERE c.weight > 1)
+    #         AND ALL(n in NODES(p) WHERE 1=length(filter(m in NODES(p) WHERE m=n)))
+    #             WITH COLLECT(DISTINCT NODES(p)) AS cnodes
+    #             UNWIND cnodes as unodes UNWIND(unodes) as uunodes
     #             RETURN COLLECT(DISTINCT uunodes)
 
-    # MATCH (n1), (n2) WHERE n1.group="ADA" AND n2.group="AVA" 
-    #     MATCH p=(n1)-[r*1..3]->(n2) 
-    #         WHERE ALL(c in r WHERE c.weight > 1) 
-    #         AND ALL(n in NODES(p) WHERE 1=length(filter(m in NODES(p) WHERE m=n))) 
-    #         WITH COLLECT(NODES(p)) AS cnodes 
-    #         WITH REDUCE(output=[], r in cnodes | output+r) AS flatnodes 
-    #         UNWIND flatnodes as fnodes 
+    # MATCH (n1), (n2) WHERE n1.group="ADA" AND n2.group="AVA"
+    #     MATCH p=(n1)-[r*1..3]->(n2)
+    #         WHERE ALL(c in r WHERE c.weight > 1)
+    #         AND ALL(n in NODES(p) WHERE 1=length(filter(m in NODES(p) WHERE m=n)))
+    #         WITH COLLECT(NODES(p)) AS cnodes
+    #         WITH REDUCE(output=[], r in cnodes | output+r) AS flatnodes
+    #         UNWIND flatnodes as fnodes
     #         WITH DISTINCT fnodes RETURN COLLECT(fnodes)
 
-    # MATCH (n1), (n2) WHERE n1.group="ADA" AND n2.group="AVA" 
-    #     MATCH p=(n1)-[r*1..3]->(n2) 
-    #         WHERE ALL(c in r WHERE c.weight > 1) 
-    #         AND ALL(n in NODES(p) WHERE 1=length(filter(m in NODES(p) WHERE m=n))) 
-    #             WITH p as p, COLLECT(NODES(p)) AS cnodes 
-    #             UNWIND cnodes as unodes UNWIND(unodes) as uunodes 
+    # MATCH (n1), (n2) WHERE n1.group="ADA" AND n2.group="AVA"
+    #     MATCH p=(n1)-[r*1..3]->(n2)
+    #         WHERE ALL(c in r WHERE c.weight > 1)
+    #         AND ALL(n in NODES(p) WHERE 1=length(filter(m in NODES(p) WHERE m=n)))
+    #             WITH p as p, COLLECT(NODES(p)) AS cnodes
+    #             UNWIND cnodes as unodes UNWIND(unodes) as uunodes
     #             RETURN COLLECT(p) as paths, COLLECT(DISTINCT uunodes) as nodeset
 
-    # MATCH (n1), (n2) WHERE n1.group="ADA" AND n2.group="AVA" 
-    # MATCH p=(n1)-[r*1..3]->(n2) 
-    #     WHERE ALL(c in r WHERE c.weight > 1) 
-    #     AND ALL(n in NODES(p) WHERE 1=length(filter(m in NODES(p) WHERE m=n))) 
-    #         WITH COLLECT(DISTINCT r) AS crel, COLLECT(NODES(p)) AS cnodes 
+    # MATCH (n1), (n2) WHERE n1.group="ADA" AND n2.group="AVA"
+    # MATCH p=(n1)-[r*1..3]->(n2)
+    #     WHERE ALL(c in r WHERE c.weight > 1)
+    #     AND ALL(n in NODES(p) WHERE 1=length(filter(m in NODES(p) WHERE m=n)))
+    #         WITH COLLECT(DISTINCT r) AS crel, COLLECT(NODES(p)) AS cnodes
     #             UNWIND cnodes as unodes UNWIND(unodes) as uunodes UNWIND crel as urel UNWIND urel as uurel
     #             RETURN COLLECT(DISTINCT uurel) as paths, COLLECT(DISTINCT uunodes) as nodeset
 
@@ -330,8 +346,8 @@ def subgraph(gr1, gr2, max_length=2, min_ws=2, min_wj=2, path_dir='uni', rec=Non
     # Match (n)-[r*1..2]->(m) WHERE n.group="ADA" AND m.group="AVA" AND ALL(c in r WHERE c.weight > 1) RETURN n,m, COUNT(r)
 
     # Shortest path...
-    # MATCH (n), (n2) WHERE n.group="ADA" AND n2.group="AVA" 
+    # MATCH (n), (n2) WHERE n.group="ADA" AND n2.group="AVA"
     #     MATCH p=shortestPath((n)-[r*..3]->(n2)) WHERE ALL(c in r WHERE c.weight > 0) RETURN p
 
-    # MATCH (n), (n2) WHERE n.group="ADA" AND n2.group="AVA" 
+    # MATCH (n), (n2) WHERE n.group="ADA" AND n2.group="AVA"
     #     MATCH p=allShortestPaths((n)-[r*]->(n2)) WHERE ALL(c in r WHERE c.weight > 0) RETURN p

@@ -165,8 +165,10 @@ h3 a:hover {
   font-size: 20px;
 }
 
+
+
 input[type=range]{
-  width: 80%;
+  width: 90%;
 }
 
 label input[type=checkbox] {

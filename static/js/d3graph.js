@@ -822,6 +822,89 @@ function graphReset() {
 }
 
 
+
+
+
+/* Query Pubmed utility functions */
+
+/* This wraps when with individual done() callbacks
+   http://stackoverflow.com/questions/26066198/jquery-when-progress-for-array-of-deferred-and-or-promise
+*/
+$.whenWithProgress = function(arrayOfPromises, progressCallback) {
+   var cntr = 0;
+   for (var i = 0; i < arrayOfPromises.length; i++) {
+       arrayOfPromises[i].done(function() {
+           progressCallback(++cntr, arrayOfPromises.length);
+       });
+   }
+   return jQuery.when.apply(jQuery, arrayOfPromises);
+}
+
+
+// Retrieve a single neuron query from the app
+function pubmed_single(name, query){    
+    return $.getJSON($SCRIPT_ROOT + '/_pubmed_single', {
+        name: name,
+        query: query
+    });
+}
+
+
+function pubmed_progress(cnt, total) {
+    percent = 100*(cnt/total);
+    //spinner = '<img id="ajaxloader" src="/static/images/ajax-loader.gif">';
+    document.getElementById("pmbutton").innerHTML = percent.toPrecision(3) + "% done";
+}
+
+
+/* This is a little complicated. First use an ajax call to get the names of neuron groups to query against.
+   Then, for each name, create a new ajax call to perform the actual query. Using jquery deferred
+   objects, we wait until all are resolved, then aggregate the filtered neuron groups into an array.
+   Finally, we use that filtered list to get the corresponding graph in a last ajax call. 
+*/
+function pubmed(){
+    var query = document.getElementById('pmsearch').value;
+    var threshold = document.getElementById('pubnumslider').value;
+    var populateOnly = $('#pubmed-check').prop('checked');
+
+    document.getElementById("pmbutton").innerHTML = '<img id="ajaxloader" src="/static/images/ajax-loader.gif">';
+    $.getJSON($SCRIPT_ROOT + '/_group_names', {}, function(d) {
+        groups = d.result;
+        //groups = groups.slice(1,10);
+        console.log(groups);
+        promises = $.map(groups, function(n) { return pubmed_single(n, query); });
+        
+        //$.when.apply($, promises).then(function() {
+        $.whenWithProgress(promises, pubmed_progress).then(function() {
+            filtered_groups = [];
+            for (var i = 0; i < arguments.length; i++) {
+                result = arguments[i][0]['result'];
+                if(result['count'] > threshold)
+                    filtered_groups.push(result['name']);
+            }                
+            
+            console.log(filtered_groups);
+            if (populateOnly) {
+                document.getElementById('group1').value = filtered_groups;
+                document.getElementById('group2').value = filtered_groups;
+            } else {
+                $.getJSON($SCRIPT_ROOT + '/_groups_graph', {
+                        groups: filtered_groups
+                    }, function(d) {
+                    data = d.result;
+                    setSlider("jmin", jminVal=0);
+                    setSlider("wmin", wminVal=0);
+                    setSlider("ndeg", ndegVal=0);
+                    updateCrossFilter(data['neurons'], data['synapses']);
+                    //document.getElementById("pmbutton").innerHTML = "Search"
+                });
+            }
+            document.getElementById("pmbutton").innerHTML = "Search";
+        });            
+    });
+}
+
+
 function expand() {
     if (fetched) {
         var name_list = nodes.map(function(d) { return d.name; });

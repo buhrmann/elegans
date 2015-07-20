@@ -6,8 +6,10 @@
     <div id="graph"></div>
     <canvas width="1000" height="1000" style="display:none"></canvas>
 
-
+    <!-- Left slider -->
     <div class="uiwidget uiwidget-left" id="left-widget">
+
+      <!-- Panel neuron search -->
         <div class="formpanel">
           <h3>Find neuron
             <small><a href="#searchpanel" data-toggle="collapse" aria-expanded="true" aria-controls="nodepanel">
@@ -32,6 +34,7 @@
           </a>            
         </div>
 
+        <!-- Panel subgraph -->
         <div class="formpanel">
           <h3>Subgraph 
             <small><a href="#subpanel" data-toggle="collapse" aria-expanded="true" aria-controls="subpanel">
@@ -101,17 +104,47 @@
         </div>
         </div>
 
+        <!-- Panel Pubmed -->
         <div class="formpanel">
-          <h3>Visibility
-            <small><a href="#vispanel" data-toggle="collapse" aria-expanded="true" aria-controls="vispanel">
+          <h3>Pubmed Search
+            <small><a href="#pubmedpanel" data-toggle="collapse" aria-expanded="true" aria-controls="pubmedpanel">
               <span class='glyphicon glyphicon-resize-small pull-right'></span>
             </a></small>
           </h3>
-          <div id="vispanel" class="panel-collapse collapse in">
+          <div id="pubmedpanel" class="panel-collapse collapse in">
+            Show network of neurons cited at least k times on Pubmed for the given search query.
+            <p>
+              <div class="">
+                <input id="pmsearch" type="search" placeholder="chemotaxis" class="form-control input-sm"/>
+              </div>              
+            </p>
+
+            <div class="form-group" id="pubnum">
+              <label for="pubnumslider">Min citations k [1-20]: </label> <output for="pubnumslider" id="pubnumlabel">1</output>
+              <input type="range" id="pubnumslider" name="pubnum" value="1" min="1" max="20" oninput="document.getElementById('pubnumlabel').value = value;">            
+            </div>
+
+            <div class="form-group">
+            <label for="pubmed-sel">Populate subgraph search (panel above) with result:</label>
+            <div>
+              <label class="checkbox-inline" ><input type="checkbox" id="pubmed-check">Populate only</label>
+            </div>
+          </div>
+
+            <a href="#" id="pmbutton" class="btn btn-default btn-sm btn-block" type="button" title="Query Pubmed" onclick="pubmed();">Search</a>
+          </div>
+        </div>
+
+        <!-- Panel visibility -->
+        <div class="formpanel">
+          <h3>Visibility
+            <small><a href="#vispanel" data-toggle="collapse" aria-expanded="false" aria-controls="vispanel">
+              <span class='glyphicon glyphicon-resize-full pull-right'></span>
+            </a></small>
+          </h3>
+          <div id="vispanel" class="panel-collapse collapse">
           Select which neurons and synapses to display.
           <p><div class="btn-group btn-group-sm btn-group-justified" id="prune-radio" data-toggle="buttons-radio">
-            <!-- <button id="prune1" type="button" data-toggle="button" name="option" value="1" class="btn btn-default active" title="Remove filtered network elements from layout">Prune</button>
-            <button id="prune2" type="button" data-toggle="button" name="option" value="2" class="btn btn-default" title="Make filtered network elements invisible">Hide</button> -->
             <a href="#" id="prune1" type="button" data-toggle="button" name="option" value="1" class="btn btn-default active" title="Remove filtered network elements from layout">Prune</a>
             <a hre="#" id="prune2" type="button" data-toggle="button" name="option" value="2" class="btn btn-default" title="Make filtered network elements invisible">Hide</a>
           </div></p>
@@ -141,9 +174,13 @@
           </div>
         </div>
         </div>
-    </div>
+    </div> <!-- End left slider -->
 
+
+    <!-- Right slider -->
     <div class="uiwidget uiwidget-right" id="right-widget">
+
+    <!-- Panel Statistics -->
       <div class="formpanel">
         <h3>Statistics
           <small><a href="#statpanel" data-toggle="collapse" aria-expanded="true" aria-controls="statpanel">
@@ -167,6 +204,7 @@
         </a>
       </div>
 
+      <!-- Panel Node Info -->
       <div class="formpanel">
         <h3><span id="node-heading">Node info</span>
           <small><a href="#nodepanel" data-toggle="collapse" aria-expanded="true" aria-controls="nodepanel">
@@ -178,13 +216,14 @@
         </div>
       </div>
 
+      <!-- Panel Export -->
       <div class="formpanel">
         <h3>Export
-          <small><a href="#exppanel" data-toggle="collapse" aria-expanded="true" aria-controls="exppanel">
-          <span class='glyphicon glyphicon-resize-small pull-right'></span>
+          <small><a href="#exppanel" data-toggle="collapse" aria-expanded="false" aria-controls="exppanel">
+          <span class='glyphicon glyphicon-resize-full3 pull-right'></span>
           </a></small>
         </h3>
-        <div id="exppanel" class="panel-collapse collapse in">
+        <div id="exppanel" class="panel-collapse collapse">
           Output current network as text file in new window.
           <form action="{{ url_for('export')}}" method="get" role="form" name="exportform" target="_blank">
             <p>            
@@ -206,11 +245,6 @@
             </p>
             <a href="javascript:{ document.exportform.submit();}" type="submit" target="_blank" class="btn btn-sm btn-default btn-block" role="button" title="Export current graph">Export</a>
           </form>
-
-          <!-- <form action="{{ url_for('downloadSvg')}}" method="get" role="form" name="downloadform" target="_blank">
-          <input type="hidden" id="svg-source" name="svg-source" value=""/>
-          <a href="javascript:{ $('#svg-source').attr('value', exportSvg()); document.downloadform.submit();}" class="btn btn-sm btn-default btn-block" role="button" title="Export to svg">Export Svg</a>
-          </form> -->
           <p><br>
           Or simply download an image file<br>
           </p>
@@ -227,7 +261,6 @@
 {{ super() }} 
 	<script type="text/javascript" src={{url_for('static', filename='js/d3.v3.min.js')}}></script>
   <script type="text/javascript" src={{url_for('static', filename='js/crossfilter.min.js')}}></script>  
-  <!--<script type="text/javascript" src={{url_for('static', filename='js/colorbrewer.v1.min.js')}}></script>  -->
   <script>
 
   // Register event handlers

@@ -1,9 +1,10 @@
 from flask import Flask, render_template, request, flash, url_for, session, redirect, jsonify, Response, make_response
 import json
 import neo
+import pubmed
 import netx
 
-# Configuration 
+# Configuration
 DEBUG = True
 SECRET_KEY = 'A0Zr98j/3yX R~XHH!jmN]LWX/,?RT'
 USER_NAME = 'syngnz'
@@ -64,6 +65,54 @@ def subgraph():
     return jsonify(result=res)
 
 
+@APP.route('/_group_names')
+def group_names():
+    groups = neo.group_names()
+    print groups
+    return jsonify(result=groups)
+
+
+@APP.route('/_neuron_names')
+def neuron_names():
+    groups = request.args.getlist('groups[]')
+    neurons = neo.neuron_names(groups)
+    print neurons
+    return jsonify(result=neurons)
+
+
+@APP.route('/_pubmed_single')
+def pubmed_single():
+    query = request.args.get('query', 'chemotaxis', type=str)
+    neuron = request.args.get('name', 'ADA', type=str)
+    num_citations = pubmed.num_articles_for_neuron(neuron, query)
+    return jsonify(result={'name':neuron, 'count':num_citations})
+
+
+@APP.route('/_pubmed_search')
+def pubmed_search():
+    global NODE_CACHE, REL_CACHE
+    query = request.args.get('query', 'chemotaxis', type=str)
+    threshold = request.args.get('threshold', 1, type=int)
+    all_groups = neo.group_names()
+    filtered_groups = pubmed.neurons_for_query(all_groups, query, threshold)
+    neurons = neo.neuron_names(filtered_groups)
+    res = neo.all_cons_for_set(neurons)
+    NODE_CACHE = res['neurons']
+    REL_CACHE = res['synapses']
+    return jsonify(result=res)
+
+
+@APP.route('/_groups_graph')
+def groups_graph():
+    global NODE_CACHE, REL_CACHE
+    groups = request.args.getlist('groups[]')
+    neurons = neo.neuron_names(groups)
+    res = neo.all_cons_for_set(neurons)
+    NODE_CACHE = res['neurons']
+    REL_CACHE = res['synapses']
+    return jsonify(result=res)
+
+
 @APP.route('/_expand')
 def expand():
     global NODE_CACHE, REL_CACHE
@@ -72,7 +121,7 @@ def expand():
     mus = [s.strip() for s in mus.split(",") if s and not s.isspace() ] # empty list (falsy) when none
     res = neo.all_cons_for_set(names, mus)
     NODE_CACHE = res['neurons']
-    REL_CACHE = res['synapses']    
+    REL_CACHE = res['synapses']
     return jsonify(result=res)
 
 
@@ -90,7 +139,7 @@ def export():
     print request.args
     exp_format = request.args.get('format', "json", type=str)
     nxg = netx.to_netx(NODE_CACHE, REL_CACHE)
-    
+
     if "json" in exp_format:
         jsg = netx.to_json(nxg, exp_format)
         resp = Response(jsg, mimetype="application/json")
@@ -103,7 +152,7 @@ def export():
     elif "adj" in exp_format:
         text = netx.to_adj(nxg)
         resp = Response(text, mimetype="text/plain")
-    
+
     return resp
 
 

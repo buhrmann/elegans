@@ -80,8 +80,8 @@
             <input type="range" id="subjslider" name="subj" value="1" min="1" max="10" oninput="document.getElementById('subjlabel').value = value;">            
           </div>
           <div class="form-group" id="subp">
-            <label for="subpslider">Max path length [1-4]: </label> <output for="subpSlider" id="subplabel">3</output>
-            <input type="range" id="subpslider" name="subp" value="3" min="1" max="4" oninput="document.getElementById('subplabel').value = value;">            
+            <label for="subpslider">Max path length [1-4]: </label> <output for="subpSlider" id="subplabel">2</output>
+            <input type="range" id="subpslider" name="subp" value="2" min="1" max="4" oninput="document.getElementById('subplabel').value = value;">            
           </div>
 
           <p>            
@@ -106,13 +106,13 @@
 
         <!-- Panel Pubmed -->
         <div class="formpanel">
-          <h3>Pubmed Search
-            <small><a href="#pubmedpanel" data-toggle="collapse" aria-expanded="true" aria-controls="pubmedpanel">
-              <span class='glyphicon glyphicon-resize-small pull-right'></span>
+          <h3>PubMed
+            <small><a href="#pubmedpanel" data-toggle="collapse" aria-expanded="false" aria-controls="pubmedpanel">
+              <span class='glyphicon glyphicon-resize-full pull-right'></span>
             </a></small>
           </h3>
-          <div id="pubmedpanel" class="panel-collapse collapse in">
-            Show network of neurons cited at least k times on Pubmed for the given search query.
+          <div id="pubmedpanel" class="panel-collapse collapse">
+            Show network of neurons cited at least k times on PubMed for the given search query.
             <p>
               <div class="">
                 <input id="pmsearch" type="search" placeholder="chemotaxis" class="form-control input-sm"/>
@@ -120,18 +120,18 @@
             </p>
 
             <div class="form-group" id="pubnum">
-              <label for="pubnumslider">Min citations k [1-20]: </label> <output for="pubnumslider" id="pubnumlabel">1</output>
-              <input type="range" id="pubnumslider" name="pubnum" value="1" min="1" max="20" oninput="document.getElementById('pubnumlabel').value = value;">            
+              <label for="pubnumslider">Min citations k [1-20]: </label> <output for="pubnumslider" id="pubnumlabel">2</output>
+              <input type="range" id="pubnumslider" name="pubnum" value="2" min="1" max="20" oninput="document.getElementById('pubnumlabel').value = value;">            
             </div>
 
             <div class="form-group">
             <label for="pubmed-sel">Populate subgraph search (panel above) with result:</label>
             <div>
-              <label class="checkbox-inline" ><input type="checkbox" id="pubmed-check">Populate only</label>
+              <label class="checkbox-inline" ><input type="checkbox" id="pubmed-check" checked>Populate only</label>
             </div>
           </div>
 
-            <a href="#" id="pmbutton" class="btn btn-default btn-sm btn-block" type="button" title="Query Pubmed" onclick="pubmed();">Search</a>
+            <a href="#" id="pmbutton" class="btn btn-default btn-sm btn-block" type="button" title="Query Pubmed" onclick="pubmed();">Search Pubmed</a>
           </div>
         </div>
 
@@ -370,6 +370,23 @@
           toggleRightPanel(false);
         }
     }
+
+    jQuery.fn.highlight = function (fade, color) {
+    $(this).each(function () {
+        var el = $(this);
+        $("<div/>")
+        .width(el.outerWidth())
+        .height(el.outerHeight())
+        .css({
+            "position": "absolute",
+            "left": el.offset().left,
+            "top": el.offset().top,
+            "background-color": color,
+            "opacity": ".7",
+            "z-index": "9999999"
+        }).appendTo('body').fadeOut(fade).queue(function () { $(this).remove(); });
+    });
+}
 
   }); 
   </script>

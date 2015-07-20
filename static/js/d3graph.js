@@ -870,8 +870,8 @@ function pubmed(){
     document.getElementById("pmbutton").innerHTML = '<img id="ajaxloader" src="/static/images/ajax-loader.gif">';
     $.getJSON($SCRIPT_ROOT + '/_group_names', {}, function(d) {
         groups = d.result;
-        //groups = groups.slice(1,10);
-        console.log(groups);
+        groups = groups.slice(1,10);
+        //console.log(groups);
         promises = $.map(groups, function(n) { return pubmed_single(n, query); });
         
         //$.when.apply($, promises).then(function() {
@@ -887,6 +887,9 @@ function pubmed(){
             if (populateOnly) {
                 document.getElementById('group1').value = filtered_groups;
                 document.getElementById('group2').value = filtered_groups;
+                $("#subpanel").collapse('show');
+                $("#group1").highlight(2000, "#A8F582");
+                $("#group2").highlight(2000, "#A8F582");
             } else {
                 $.getJSON($SCRIPT_ROOT + '/_groups_graph', {
                         groups: filtered_groups
@@ -899,7 +902,7 @@ function pubmed(){
                     //document.getElementById("pmbutton").innerHTML = "Search"
                 });
             }
-            document.getElementById("pmbutton").innerHTML = "Search";
+            document.getElementById("pmbutton").innerHTML = "Search Pubmed";
         });            
     });
 }

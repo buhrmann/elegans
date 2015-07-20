@@ -870,7 +870,7 @@ function pubmed(){
     document.getElementById("pmbutton").innerHTML = '<img id="ajaxloader" src="/static/images/ajax-loader.gif">';
     $.getJSON($SCRIPT_ROOT + '/_group_names', {}, function(d) {
         groups = d.result;
-        groups = groups.slice(1,10);
+        //groups = groups.slice(1,10);
         //console.log(groups);
         promises = $.map(groups, function(n) { return pubmed_single(n, query); });
         

@@ -3,8 +3,8 @@
 {% block jumbo %}
 <div class="jumbo-bg"></div>
 <div class="jumbotron">
-  <h1>Elegans</h1>
-  <p class="lead">A connectome explorer for the nematode worm <em>C. elegans</em></p>
+  <h1>Worm Circuitry Explorer</h1>
+  <p class="lead">An interactive connectome explorer for the nematode worm <em>C. elegans</em></p>
   <a href="{{ url_for('index')}}" type="button" id="snbutton" class="btn btn-warning">Explore Now!</a>
 </div>
 {% endblock %}  
@@ -16,12 +16,12 @@
     <a href="https://en.wikipedia.org/wiki/Caenorhabditis_elegans"><em>Caenorhabditis elegans</em></a> (or simply <em>C. elegans</em>) is a nematode worm of particular interest to many researchers as it was the first multicellular organism to have its whole genome sequenced, and at least for now, remains the only organism whose connectome (neuronal wiring diagram) has been completed in its entirety.
   </p>
   <p>
-    <a href="{{ url_for('index')}}">Elegans</a> is a tool that allows visual and interactive exploration of this connectome. In its current form one of its purposes is to give researchers interested in modelling a specific worm behaviour the means to easily extract subcircuits that may underlie the behaviour in question. 
+    <a href="{{ url_for('index')}}">The Worm Circuitry Explorer</a> is a tool that allows visual and interactive exploration of this connectome. In its current form one of its purposes is to give researchers interested in modelling a specific worm behaviour the means to easily extract subcircuits that may underlie the behaviour in question. 
   </p>  
 
   <h3><span class="fa fa-table"></span>Data sources</h3>
   <p>
-    The adult <em>C. elegans</em> hermaphrodite worm has 302 neurons. The majority of these (282 neurons) belong to the large and densely interconnected somatic nervous system, while a smaller number (20 neurons) makes up the pharyngeal nervous system. In its present form the <em>Elegans</em> app covers the connectivity between the 279 somatic neurons whose interconnections are best established. 
+    The adult <em>C. elegans</em> hermaphrodite worm has 302 neurons. The majority of these (282 neurons) belong to the large and densely interconnected somatic nervous system, while a smaller number (20 neurons) makes up the pharyngeal nervous system. In its present form the <em>Worm Circuitry Explorer</em> covers the connectivity between the 279 somatic neurons whose interconnections are best established. 
   </p>
   <p>
     The connectome data the app is based on was first discussed by Chen et al. (2006) <sup><a href="#1">1</a></sup>, a full analysis of which can be found in a more recent publication by Varshney et al. (2011) <sup><a href="#2">2</a></sup>. This data is made available on the <a href="http://www.wormatlas.org/neuronalwiring.html">connectivity pages of the Worm Atlas</a> <sup><a href="#3">3</a></sup>, where further information about its origin can also be found.
@@ -32,7 +32,7 @@
 
   <h3><span class="fa fa-database"></span>Database</h3>
   <p>
-    The preprocessed and joined connectome is maintained in <a href="http://neo4j.com/">Neo4j</a>, a graph database in which nodes and edges are stored along with their meta-information. Neo4j offers a powerful query language (<a href="http://neo4j.com/developer/cypher-query-language/">cypher</a>) that is used here to find subcircuits of the full connectome. An example use-case is the identification of the neural subcircuit that connects a set of sensory neurons to a set of motor neurons. Using additional constraints such as the minimum number of synapses per connection, or a maximum path length, the Elegans app translates this goal into a cypher query and returns the corresponding circuit as json data ready to be visualized.
+    The preprocessed and joined connectome is maintained in <a href="http://neo4j.com/">Neo4j</a>, a graph database in which nodes and edges are stored along with their meta-information. Neo4j offers a powerful query language (<a href="http://neo4j.com/developer/cypher-query-language/">cypher</a>) that is used here to find subcircuits of the full connectome. An example use-case is the identification of the neural subcircuit that connects a set of sensory neurons to a set of motor neurons. Using additional constraints such as the minimum number of synapses per connection, or a maximum path length, the app translates this goal into a cypher query and returns the corresponding circuit as json data ready to be visualized.
   </p>
 
   <h3><img src="{{ url_for('static', filename='images/molecule.svg') }}" width="28", height="28">Visualization</h3>

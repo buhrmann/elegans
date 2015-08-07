@@ -164,7 +164,7 @@ graph = function(id, d) {
         .attr("markerHeight", 8)
         .attr("markerUnits", "userSpaceOnUse")
         .attr("orient", "auto")
-        .attr("style", function(d) { return "fill: " + d + "; visibility: hidden;"})
+        .attr("style", function(d) { return "fill: " + d + "; visibility: visible;"})
             .append("svg:path")
                 .attr("d", "M0,-5L10,0L0,5");
 

@@ -940,6 +940,7 @@ function pubmed(){
             if (populateOnly) {
                 document.getElementById('group1').value = filtered_groups;
                 document.getElementById('group2').value = filtered_groups;
+                $("#subpanel").collapse({'toggle': false});
                 $("#subpanel").collapse('show');
                 $("#group1").highlight(2000, "#A8F582");
                 $("#group2").highlight(2000, "#A8F582");

@@ -25,7 +25,7 @@ var showArrow = 0,
     showJunctions = 1,
     showSynapses = 1;
 var fetched = false;
-
+var dragging = 0;
 var arcs = false;
 var sqrt3 = 1.7320508075688772;
 
@@ -180,17 +180,20 @@ graph = function(id, d) {
         .size([width, height])
         .on("tick", tick);
 
-    drag = force.drag().on("dragstart", dragstarted).on("drag", dragged);
+    drag = force.drag().on("dragstart", dragstarted).on("drag", dragged).on("dragend", dragstopped);
     zoom = d3.behavior.zoom().scaleExtent([0.75, 2]).on("zoom", zoomed); 
     svg.call(zoom).on("dblclick.zoom", null);
 
     node = nodeLayer.selectAll(".node");
     link = linkLayer.selectAll(".link");  
 
-    svg.on("click", function() {
+    svg.on("click", function() { 
+        if (d3.event.defaultPrevented) {
+            return;
+        }
         toggleSelected(highlightId, false);
-        connectedNodes(null);
         highlightId = -1;
+        connectedNodes(null);
         removeNodeInfo();
         d3.event.stopPropagation();
     });  
@@ -323,23 +326,17 @@ function filter(ndeg, wmin, jmin) {
     n = ncon.top(Infinity);
     ncon.dispose();
 
-    if(prune){
+    if (prune) {
         update(n, e);
     }
-    else{
-        node.style("opacity", function(d) {
-            if (!nodeIds.has(d.id))
-                return "0";
-            else
-                return "1";
+    else {
+        node.classed("hidden", function(d) {
+            return nodeIds.has(d.id) ? false : true;
         });
 
         edgeIds = d3.set(e.map(function(d) { return d.id; }));
-        link.style("opacity", function(d) {
-            if (!edgeIds.has(d.id))
-                return "0";
-            else
-                return "0.25";
+        link.classed("hidden", function(d) {
+            return edgeIds.has(d.id) ? false : true;
         });
     }
 
@@ -473,9 +470,7 @@ update = function(n, l) {
     var nodeEnter = node.enter().append("g")
         .attr("class", "node")
         .on('click', function(d) { 
-            if (d3.event.defaultPrevented) return;
-            clicker(d, this);            
-            d3.event.stopPropagation();
+            clicker(d, this);
         })
         .call(drag);
 
@@ -498,6 +493,9 @@ update = function(n, l) {
     });
 
     node.exit().remove();
+
+    // If a node was selected before updating links, need to highlight again.
+    restoreHighlight();
 
 }
 
@@ -522,6 +520,9 @@ updateLinks = function(l) {
 
     a.filter(function(d) { return d.type != "EJ"})
         .attr("marker-mid", function(d) { return "url(#" + nodeColorScale(d.source.type) + ")" });
+
+    // If a node was selected before updating links, need to highlight again.
+    restoreHighlight();
 }
 
 
@@ -607,8 +608,10 @@ tick = function() {
     });
 }
 
+              
 dblclick_timer = false;
 function clicker(d, elem) {
+    if (d3.event.defaultPrevented) return;
     if (dblclick_timer) {
         clearTimeout(dblclick_timer);
         dblclick_timer = false;
@@ -618,6 +621,7 @@ function clicker(d, elem) {
         dblclick_timer = false;
         nodeClicked(d);
     }, 200);
+    d3.event.stopPropagation();
 };
 
 function nodeClicked(d) {
@@ -627,12 +631,65 @@ function nodeClicked(d) {
         toggleSelected(highlightId, false);
         highlightId = d.id;
         toggleSelected(highlightId, true);
+        connectedNodes(d);
+
+        // Filter interactivity
+        node.on("mouseover", function (o) {
+            return neighboring(d, o) | neighboring(o, d) ? connectedNodes(o) : null;
+        });
+        node.on("click", function (o) {
+            return neighboring(d, o) | neighboring(o, d) ? clicker(o, this) : null;
+        });
+        node.call(drag);
+        node.filter(function(o) {
+            return !(neighboring(d, o) | neighboring(o, d));
+        }).on("mousedown.drag", null);
     }
     else
     {
         removeNodeInfo();
         toggleSelected(highlightId, false);
         highlightId = -1;
+        connectedNodes(null);
+    }
+}
+
+function connectedNodes(d) {    
+    if (d != null) {   
+        if ((highlightId == -1) || (highlightId == d.id)) {
+            // Reduce the opacity of all but the neighbouring nodes
+            node.style("opacity", function (o) {
+                return neighboring(d, o) | neighboring(o, d) ? 1 : 0.1;
+            });
+            node.classed("selectable", function (o) {
+                return neighboring(d, o) | neighboring(o, d) ? true : false;
+            });
+            link.style("opacity", function (o) {
+                return d.id==o.from | d.id==o.to ? 1 : 0.05;
+            });
+            link.classed("selectable", function (o) {
+                return d.id==o.from | d.id==o.to ? true : false;
+            });
+        }
+    } else {
+        if (highlightId != -1){
+            return;
+        }
+        node.style("opacity", 1);
+        link.style("opacity", 0.25);
+        node.on("mouseover", function(d) { connectedNodes(d); });
+        node.on("click", function(d) { clicker(d, this); });
+        node.call(drag);
+    }
+}
+
+function restoreHighlight() {
+    if (highlightId != -1) {
+        d = nodes.filter(function(n) { return n.id == highlightId; })[0];
+        if (d != undefined) {
+            nodeClicked(d); // toggles un-highlight
+            nodeClicked(d); // toggles re-highlight
+        }
     }
 }
 
@@ -642,7 +699,13 @@ function nodeDblClicked(d, elem) {
 }
 
 function dragstarted(d) {
-     d3.event.sourceEvent.stopPropagation();
+    dragging = 1;
+    d3.event.sourceEvent.stopPropagation();
+}
+
+function dragstopped(d) {
+    dragging = 0;
+    d3.event.sourceEvent.stopPropagation();
 }
 
 function dragged(d) {
@@ -690,44 +753,35 @@ function toggleSelected(i, b) {
         .select("circle").classed("selected", b);
 }
 
-
-function connectedNodes(d) {
-    if (d != null) {
-        //Reduce the opacity of all but the neighbouring nodes
-        node.style("opacity", function (o) {
-            return neighboring(d, o) | neighboring(o, d) ? 1 : 0.1;
-        });
-        link.style("opacity", function (o) {
-            return d.id==o.from | d.id==o.to ? 1 : 0.05;
-        });
-    } else {     
-        node.style("opacity", 1);
-        link.style("opacity", 0.25);
+function isSelectedLink(d) {
+    if (highlightId != -1) {
+        dh = nodes.filter(function(n) { return n.id == highlightId; })[0];
+        return (dh.id == d.from | dh.id == d.to);
     }
+    return false;
 }
 
-
 function linkMouseOver(d) {
-    //link.classed("active", function(p) { return p==d});
-    d3.select(this)
-        .style("opacity", 1);
-
-    container.append("text")
-        .attr("class","labelText")
-        .style("font-size", "11px")
-        .style("fill", nodeColorScale(d.source.type))
-        .attr("x", "50")
-        .attr("y", "-20")
-        .attr("dy", "-0.2em")
-        .attr("text-anchor", "start")
-        .append("textPath")
-            .attr("xlink:href", '#' + d.id)
-            .text(d.type + " " + d.weight); 
+    if (highlightId == -1 || isSelectedLink(d)) {
+        d3.select(this).style("opacity", 1);
+        container.append("text")
+            .attr("class","labelText")
+            .style("font-size", "11px")
+            .style("fill", nodeColorScale(d.source.type))
+            .attr("x", "50")
+            .attr("y", "-20")
+            .attr("dy", "-0.2em")
+            .attr("text-anchor", "start")
+            .append("textPath")
+                .attr("xlink:href", '#' + d.id)
+                .text(d.type + " " + d.weight); 
+    } 
 }
 
 function linkMouseOut(d) {
-    d3.select(this)
-        .style("opacity", 0.25);
+    if (highlightId == -1) {
+        d3.select(this).style("opacity", 0.25);        
+    }
     container.selectAll(".labelText").remove();
 }
 
@@ -812,6 +866,7 @@ function graphReset() {
         setSlider("jmin", jminVal=2);
         setSlider("wmin", wminVal=3);
         setSlider("ndeg", ndegVal=1);
+        highlightId = -1;
         updateCrossFilter(data['neurons'], data['synapses']);
         document.getElementById("resetbutton").innerHTML = "Reset";
       });
@@ -871,10 +926,8 @@ function pubmed(){
     $.getJSON($SCRIPT_ROOT + '/_group_names', {}, function(d) {
         groups = d.result;
         //groups = groups.slice(1,10);
-        //console.log(groups);
         promises = $.map(groups, function(n) { return pubmed_single(n, query); });
         
-        //$.when.apply($, promises).then(function() {
         $.whenWithProgress(promises, pubmed_progress).then(function() {
             filtered_groups = [];
             for (var i = 0; i < arguments.length; i++) {
@@ -899,7 +952,6 @@ function pubmed(){
                     setSlider("wmin", wminVal=0);
                     setSlider("ndeg", ndegVal=0);
                     updateCrossFilter(data['neurons'], data['synapses']);
-                    //document.getElementById("pmbutton").innerHTML = "Search"
                 });
             }
             document.getElementById("pmbutton").innerHTML = "Search Pubmed";

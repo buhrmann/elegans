@@ -7,7 +7,7 @@
     <canvas width="1000" height="1000" style="display:none"></canvas>
 
     <!-- Left slider -->
-    <div class="uiwidget uiwidget-left" id="left-widget">
+    <div class="uiwidget uiwidget-left out" id="left-widget">
 
       <!-- Panel neuron search -->
         <div class="formpanel">
@@ -30,7 +30,7 @@
         <div class="uihandle uihandle-left" id="lefthandle">
           <a href="#">
             <span class="handlelabel">Controls</span> 
-            <span class='glyphicon glyphicon-chevron-right'></span>
+            <span class='glyphicon glyphicon-chevron-left'></span>
           </a>            
         </div>
 
@@ -80,8 +80,8 @@
             <input type="range" id="subjslider" name="subj" value="1" min="1" max="10" oninput="document.getElementById('subjlabel').value = value;">            
           </div>
           <div class="form-group" id="subp">
-            <label for="subpslider">Max path length [1-4]: </label> <output for="subpSlider" id="subplabel">2</output>
-            <input type="range" id="subpslider" name="subp" value="2" min="1" max="4" oninput="document.getElementById('subplabel').value = value;">            
+            <label for="subpslider">Max path length [1-4]: </label> <output for="subpSlider" id="subplabel">3</output>
+            <input type="range" id="subpslider" name="subp" value="3" min="1" max="4" oninput="document.getElementById('subplabel').value = value;">            
           </div>
 
           <p>            
@@ -178,7 +178,7 @@
 
 
     <!-- Right slider -->
-    <div class="uiwidget uiwidget-right" id="right-widget">
+    <div class="uiwidget uiwidget-right out" id="right-widget">
 
     <!-- Panel Statistics -->
       <div class="formpanel">
@@ -199,7 +199,7 @@
       </div>
       <div class="uihandle uihandle-right" id="righthandle">
         <a href="#">
-          <span class='glyphicon glyphicon-chevron-left'></span>
+          <span class='glyphicon glyphicon-chevron-right'></span>
           <span class="handlelabel"> Info</span>
         </a>
       </div>
@@ -356,16 +356,18 @@
         $(".topwrapper").toggleClass("out");
         var s = $("#tophandle").find("span.glyphicon");
         if (s.hasClass("glyphicon-chevron-up")) {
-          s.removeClass("glyphicon-chevron-up").addClass("glyphicon-chevron-down");
+          s.removeClass("glyphicon-chevron-up").addClass("glyphicon-question-sign");
+          s.css("font-size", "20px");
           $("#tophandle").find("a span.handlelabel").css("display", "none");
-          $("#tophandle").css("height", "20px");
+          $("#tophandle").css("height", "30px");
           toggleLeftPanel(true);
           toggleRightPanel(true);        
         }
         else {
           s.removeClass("glyphicon-chevron-down").addClass("glyphicon-chevron-up");        
           $("#tophandle").find("a span.handlelabel").css("display", "inline");        
-          $("#tophandle").css("height", "40px");
+          s.css("font-size", "14px");
+          $("#tophandle").css("height", "30px");
           toggleLeftPanel(false);
           toggleRightPanel(false);
         }

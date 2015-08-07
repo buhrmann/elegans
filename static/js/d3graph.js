@@ -866,7 +866,10 @@ function graphReset() {
         setSlider("jmin", jminVal=2);
         setSlider("wmin", wminVal=3);
         setSlider("ndeg", ndegVal=1);
-        highlightId = -1;
+        if (highlightId != -1){
+            d = nodes.filter(function(n) { return n.id == highlightId; })[0];
+            nodeClicked(d);
+        }
         updateCrossFilter(data['neurons'], data['synapses']);
         document.getElementById("resetbutton").innerHTML = "Reset";
       });
@@ -1014,6 +1017,10 @@ function subGraph() {
         setSlider("jmin", jminVal=0);
         setSlider("wmin", wminVal=0);
         setSlider("ndeg", ndegVal=0);
+        if (highlightId != -1){
+            d = nodes.filter(function(n) { return n.id == highlightId; })[0];
+            nodeClicked(d);
+        }
         updateCrossFilter(data['neurons'], data['synapses']);
         document.getElementById("fetchbutton").innerHTML = "Fetch"
         $('#expandbutton').toggleClass('disabled', false);

@@ -4,7 +4,6 @@
 
   {% if data %}
     <div id="graph"></div>
-    <canvas width="1000" height="1000" style="display:none"></canvas>
 
     <!-- Left slider -->
     <div class="uiwidget uiwidget-left out" id="left-widget">
@@ -149,16 +148,16 @@
             <a hre="#" id="prune2" type="button" data-toggle="button" name="option" value="2" class="btn btn-default" title="Make filtered network elements invisible">Hide</a>
           </div></p>
           <div class="form-group" id="ndeg">
-            <label for="ndegslider">Node degree [0-200]:</label> <output for="thresholdSlider" id="ndeglabel">2</output>
-            <input type="range" id="ndegslider" name="ndeg" value="2" min="0" max="200" oninput="filterNDeg(value)">            
+            <label for="ndegslider">Node degree [0-200]:</label> <output for="thresholdSlider" id="ndeglabel">0</output>
+            <input type="range" id="ndegslider" name="ndeg" value="0" min="0" max="200" oninput="filterNDeg(value)">            
           </div>
           <div class="form-group" id="wmin">
-            <label for="wminslider">Synapse min weight [0-40]:</label> <output for="wminslider" id="wminlabel">3</output>
-            <input type="range" id="wminslider" name="wmin" value="3" min="0" max="40" oninput="filterWMin(value)">            
+            <label for="wminslider">Synapse min weight [1-40]:</label> <output for="wminslider" id="wminlabel">1</output>
+            <input type="range" id="wminslider" name="wmin" value="1" min="1" max="40" oninput="filterWMin(value)">            
           </div>
           <div class="form-group" id="jmin">
-            <label for="jminslider">Junction min weight [0-25]:</label> <output for="jminslider" id="jminlabel">2</output>
-            <input type="range" id="jminslider" name="jmin" value="2" min="0" max="25" oninput="filterJMin(value)">            
+            <label for="jminslider">Junction min weight [1-25]:</label> <output for="jminslider" id="jminlabel">1</output>
+            <input type="range" id="jminslider" name="jmin" value="1" min="1" max="25" oninput="filterJMin(value)">            
           </div>
           <div class="checkbox">
             <label><input type="checkbox" onchange="toggleSynapses(this)" checked>Chemical synapses</label>
@@ -394,5 +393,5 @@
   </script>
   <script type="text/javascript" src={{url_for('static', filename='js/saveSvgAsPng.js')}}></script>
   <script type="text/javascript" src={{url_for('static', filename='js/d3graph.js')}}></script>
-  <script type="text/javascript">graph("#graph", {{data|safe}});</script>
+  <script type="text/javascript">graph("#graph", {{data|safe}}, {{use_canvas|safe}});</script>
 {% endblock %}

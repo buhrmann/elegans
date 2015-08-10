@@ -36,12 +36,14 @@ def build():
 
 
 @APP.route('/')
-def index():
+@APP.route('/<canvas>')
+def index(canvas=None):
     global NODE_CACHE, REL_CACHE
     NODE_CACHE = neo.neurons()
     REL_CACHE = neo.synapses_d3(NODE_CACHE, min_weight=0)
     jsn = json.dumps({'neurons':NODE_CACHE, 'synapses':REL_CACHE})
-    return render_template('graph.html', data=jsn)
+    use_canvas = json.dumps(canvas == "canvas")
+    return render_template('graph.html', data=jsn, use_canvas=use_canvas)
 
 
 @APP.route('/_subgraph')

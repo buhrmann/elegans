@@ -8,6 +8,7 @@ var force, drag, zoom;
 var nodeColorScale;
 var nodeRadiusScale;
 var linkWeightScale;
+var linkOpacityScale;
 var nfilter = crossfilter(), 
     efilter = crossfilter();
 var nodesDegDim, edgesWeightDim, junctionsWeightDim;
@@ -17,17 +18,35 @@ var links = [];
 var linked = {};
 var node, link, nodeLayer, linkLayer, container;
 var svg;
-var ndegVal = 2, 
-    wminVal = 3,
-    jminVal = 2;
+var ndegVal = 0, 
+    wminVal = 1,
+    jminVal = 1;
 var highlightId = -1;
-var showArrow = 0,
+var showArrows = 0,
     showJunctions = 1,
     showSynapses = 1;
 var fetched = false;
 var dragging = 0;
 var arcs = false;
 var sqrt3 = 1.7320508075688772;
+
+// For canvas drawing of edges:
+// https://chat.stackoverflow.com/rooms/73258/discussion-between-niddro-and-martin-hascak
+// https://jsfiddle.net/Klainer/wop1Lfjr/2/
+var use_canvas = true;
+var canvas;
+var context;
+var scale = 1;
+var transX = 0;
+var transY = 0;
+
+var linkOpacityDefault = 0.25;
+var linkOpacityBackground = 0.05;
+var linkOpacityHighlight = 1;
+var nodeOpacityDefault = 1;
+var nodeOpacityBackground = 0.1;
+
+var numLinksDrawThresh = 1000;
 
 var presets = [
     {name: "Salt klinotaxis S", g1:"ASE", g2:"SMB", smin: 2, jmin: 2, length:3},
@@ -121,16 +140,32 @@ function group_auto(data) {
 //-------------------------------------------------------------------
 // Grap with d3
 //-------------------------------------------------------------------
-graph = function(id, d) {
+graph = function(id, d, canvas) {
 
     data = d;
-    
+    use_canvas = canvas
+
+    zoom = d3.behavior.zoom().scaleExtent([0.75, 2]).on("zoom", zoomed); 
+
     // Containers
+    if (use_canvas) {
+        canvas = d3.select("body").insert("canvas", id)
+            .attr("width", width)
+            .attr("height", height)
+            .style("position", "absolute");            
+
+        context = canvas.node().getContext("2d");
+        canvas.call(zoom).on("dblclick.zoom", null);
+    }
+
     svg = d3.select(id).append("svg")
         .attr("viewBox", "0 0 " + width + " " + height)
-        .attr("preserveAspectRatio", "xMidYMid meet");
+        .attr("preserveAspectRatio", "xMidYMid meet")
+        .call(zoom).on("dblclick.zoom", null);
 
-    container = svg.append("g").attr("style", "cursor:move");
+    container = svg.append("g")
+        .attr("style", "cursor:move");
+
     linkLayer = container.append("g");
     nodeLayer = container.append("g");
 
@@ -148,7 +183,13 @@ graph = function(id, d) {
     nodeRadiusScale = d3.scale.linear().domain(degreeDomain).range([10,25]);
 
     var weightDomain = d3.extent(data.synapses, function(s) { return s.weight; });
-    linkWeightScale = d3.scale.linear().domain(weightDomain).range([2,6]);
+    if (use_canvas) {
+        linkWeightScale = d3.scale.linear().domain(weightDomain).range([1,5]);
+        linkOpacityScale = d3.scale.linear().domain(weightDomain).range([0.1,0.5]);
+    }
+    else {
+        linkWeightScale = d3.scale.linear().domain(weightDomain).range([1,5]);
+    }
 
     initNodePos(data.neurons);
     addNodeRadius(data.neurons);
@@ -181,9 +222,6 @@ graph = function(id, d) {
         .on("tick", tick);
 
     drag = force.drag().on("dragstart", dragstarted).on("drag", dragged).on("dragend", dragstopped);
-    zoom = d3.behavior.zoom().scaleExtent([0.75, 2]).on("zoom", zoomed); 
-    svg.call(zoom).on("dblclick.zoom", null);
-
     node = nodeLayer.selectAll(".node");
     link = linkLayer.selectAll(".link");  
 
@@ -236,6 +274,9 @@ function updateCrossFilter(n, s) {
     // Warm-start
     for (i = 0; i < 10; i++)
         force.tick();
+
+    if(use_canvas)
+        drawCanvas();
 }
 
 
@@ -447,22 +488,31 @@ update = function(n, l) {
         .start();
 
     // Update links
-    link = link.data(force.links(), function(d) { return d.id; });
-    link.exit().remove();
-    
-    var a = link.enter().append("path");
-    a.attr("class", "link")
-        .classed("junction", function(d) { return (d.type == 'EJ' || d.type == 'NMJ')})
-        .classed("hidden", function(d) { return (d.type=='EJ' && !showJunctions) || (d.type!='EJ' && !showSynapses); })
-        .style("stroke-width", function(d) { return linkWeightScale(d.weight); })
-        .style("stroke", function(d) { return nodeColorScale(d.source.type); })
-        .style("opacity", 0.25)
-        .attr("id", function(d) { return d.id; })
-        .on("mouseover", linkMouseOver)
-        .on("mouseout", linkMouseOut);
+    if (use_canvas) {
+        //links.forEach(function(l) { l.opacity = linkOpacityDefault; });
+        links.forEach(function(l) { 
+            l.opacity = linkOpacityScale(l.weight); 
+            l.strokeStyle = nodeColorScale(l.source.type);
+            l.lineWidth = linkWeightScale(l.weight);
+        });
+    } else {
+        link = link.data(force.links(), function(d) { return d.id; });
+        link.exit().remove();
+        
+        var a = link.enter().append("path");
+        a.attr("class", "link")
+            .classed("junction", function(d) { return (d.type == 'EJ' || d.type == 'NMJ')})
+            .classed("hidden", function(d) { return (d.type=='EJ' && !showJunctions) || (d.type!='EJ' && !showSynapses); })
+            .style("stroke-width", function(d) { return linkWeightScale(d.weight); })
+            .style("stroke", function(d) { return nodeColorScale(d.source.type); })
+            .style("opacity", linkOpacityDefault)
+            .attr("id", function(d) { return d.id; })
+            .on("mouseover", linkMouseOver)
+            .on("mouseout", linkMouseOut);
 
-    a.filter(function(d) { return d.type == "S" || d.type == "Sp"})
-        .attr("marker-mid", function(d) { return "url(#" + nodeColorScale(d.source.type) + ")" });
+        a.filter(function(d) { return d.type == "S" || d.type == "Sp"})
+            .attr("marker-mid", function(d) { return "url(#" + nodeColorScale(d.source.type) + ")" });
+    }
 
     // Update nodes
     node = node.data(force.nodes(), function(d) { return d.id; });
@@ -502,27 +552,106 @@ update = function(n, l) {
 updateLinks = function(l) {
     
     links = l;
-    force.links(links).start();
+    force.links(links).start().on("tick", tick);
     
-    link = link.data(force.links(), function(d) { return d.id; });
-    link.exit().remove();
-    
-    var a = link.enter().append("path");
-    a.attr("class", "link")
-        .classed("junction", function(d) { return (d.type == 'EJ' || d.type == 'NMJ')})
-        .classed("hidden", function(d) { return (d.type=='EJ' && !showJunctions) || (d.type!='EJ' && !showSynapses); })
-        .style("stroke-width", function(d) { return linkWeightScale(d.weight); })
-        .style("stroke", function(d) { return nodeColorScale(d.source.type); })
-        .style("opacity", 0.25)
-        .attr("id", function(d) { return d.id; })
-        .on("mouseover", linkMouseOver)
-        .on("mouseout", linkMouseOut);
+    if(use_canvas) {
+        links.forEach(function(l) { l.opacity = linkOpacityDefault; });
+    } else {
+        link = link.data(force.links(), function(d) { return d.id; });
+        link.exit().remove();
+        
+        var a = link.enter().append("path");
+        a.attr("class", "link")
+            .classed("junction", function(d) { return (d.type == 'EJ' || d.type == 'NMJ')})
+            .classed("hidden", function(d) { return (d.type=='EJ' && !showJunctions) || (d.type!='EJ' && !showSynapses); })
+            .style("stroke-width", function(d) { return linkWeightScale(d.weight); })
+            .style("stroke", function(d) { return nodeColorScale(d.source.type); })
+            .style("opacity", 0.25)
+            .attr("id", function(d) { return d.id; })
+            .on("mouseover", linkMouseOver)
+            .on("mouseout", linkMouseOut);
 
-    a.filter(function(d) { return d.type != "EJ"})
-        .attr("marker-mid", function(d) { return "url(#" + nodeColorScale(d.source.type) + ")" });
+        a.filter(function(d) { return d.type != "EJ"})
+            .attr("marker-mid", function(d) { return "url(#" + nodeColorScale(d.source.type) + ")" });
+    }
 
     // If a node was selected before updating links, need to highlight again.
     restoreHighlight();
+    
+    if(use_canvas)
+        drawCanvas();
+}
+
+colToRgba = function (col, o) {
+    c = d3.rgb(col);
+    return "rgba(" + c.r + "," + c.g + "," + c.b + "," + o;
+}
+
+drawCanvas = function() {
+    context.clearRect(0, 0, width, height);  
+    context.save();      
+    context.translate(transX, transY);
+    context.scale(scale, scale);
+
+    highlighted = links.filter(function(x) { return x.opacity==linkOpacityHighlight; });
+    if (highlighted.length == 0 && links.length > numLinksDrawThresh) {
+        // Draw simple background connections
+        context.strokeStyle = "rgb(200,200,200)";
+        context.beginPath();
+        links.forEach(function (l) {    
+            drawLine(l.source.x, l.source.y, l.target.x, l.target.y);
+        });
+        context.stroke();
+    } else {
+        // Draw colored, weighted, arrowed foreground connections
+        drawLinks = highlighted.length > 0 ? highlighted : links;
+        if (highlighted.length == 0)
+            context.globalAlpha = linkOpacityDefault;
+
+        if (arcs) {
+           drawLinks.forEach(function (l) {
+                context.setLineDash(l.type == "EJ" ? [2,3] : []);
+                context.strokeStyle = l.strokeStyle;
+                context.fillStyle = l.strokeStyle;
+                drawCurveArrow(l.source.x, l.source.y, l.target.x, l.target.y);
+            });
+        } else {
+            drawLinks.filter(function(x) { return x.type != "EJ"; })
+                .forEach(function(l) {
+                    context.beginPath();
+                    context.strokeStyle = l.strokeStyle;
+                    context.lineWidth = l.lineWidth;    
+                    // context.setLineDash([]);
+                    drawLine(l.source.x, l.source.y, l.target.x, l.target.y);
+                    context.stroke();
+            });
+
+            drawLinks.filter(function(x) { return x.type == "EJ"; })
+                .forEach(function(l) {
+                    context.beginPath();
+                    context.strokeStyle = l.strokeStyle;
+                    context.lineWidth = l.lineWidth;    
+                    context.setLineDash([2,3]);
+                    drawLine(l.source.x, l.source.y, l.target.x, l.target.y);
+                    context.stroke();
+            });
+                        
+            drawLinks.forEach(function(l) {
+                context.beginPath();
+                context.fillStyle = nodeColorScale(l.source.type);
+                drawLineArrow(l.source.x, l.source.y, l.target.x, l.target.y);
+                context.fill();
+            });
+        }
+    }
+    //col = colToRgba(nodeColorScale(l.source.type), l.opacity);
+    //context.strokeStyle = col;
+    //context.fillStyle = col;
+    //context.lineWidth = linkWeightScale(l.weight);
+    //context.strokeStyle = l.strokeStyle;
+    //context.fillStyle = l.fillStyle;
+    //context.lineWidth = l.lineWidth;            
+    context.restore();
 }
 
 
@@ -545,66 +674,72 @@ tick = function() {
                     n.x += k;
             }
         });
+
+        node.each(collide(0.2));
         
-        if(arcs) {
-            link.attr("d", function(d) {
+        if (use_canvas) {
+            drawCanvas();
+        } else {
+            if (arcs) {
+                link.attr("d", function(d) {
 
-                // No midpoint
-                // var dx = d.target.x - d.source.x,
-                //     dy = d.target.y - d.source.y,                    
-                //     dr = Math.sqrt(dx * dx + dy * dy),
-                //     endx = d.target.x - dx/dr * d.target.r,
-                //     endy = d.target.y - dy/dr * d.target.r,
-                //     r = d.type=="Sp" ? 0 : d.type=="S" ? 1 : 2; 
-                //     return "M" + d.source.x + "," + d.source.y + "A" + r*dr + "," + r*dr + " 0 0,1 " + endx + "," + endy;
+                    // No midpoint
+                    // var dx = d.target.x - d.source.x,
+                    //     dy = d.target.y - d.source.y,                    
+                    //     dr = Math.sqrt(dx * dx + dy * dy),
+                    //     endx = d.target.x - dx/dr * d.target.r,
+                    //     endy = d.target.y - dy/dr * d.target.r,
+                    //     r = d.type=="Sp" ? 0 : d.type=="S" ? 1 : 2; 
+                    //     return "M" + d.source.x + "," + d.source.y + "A" + r*dr + "," + r*dr + " 0 0,1 " + endx + "," + endy;
 
-                // Midpoint
-                // var dx = d.target.x - d.source.x,
-                //     dy = d.target.y - d.source.y,
-                //     dr = Math.sqrt(dx * dx + dy * dy) / 2,
-                //     mx = d.source.x + dx,
-                //     my = d.source.y + dy,
-                //     r = d.type=="Sp" ? 0 : d.type=="S" ? 1 : 2;
-                //     return [
-                //         "M", d.source.x, d.source.y,
-                //         "A", dr, dr, 0,0,1, mx, my,
-                //         "A", dr, dr, 0,0,1, d.target.x, d.target.y
-                //     ].join(" ");
-                    
-                // // Midpoint v2
-                var dx = d.target.x - d.source.x,
-                    dy = d.target.y - d.source.y,
-                    dr = Math.sqrt(dx * dx + dy * dy),
-                    mx = (d.target.x + d.source.x) / 2,
-                    my = (d.target.y + d.source.y) / 2,
-                    len = dr - ((dr/2) * sqrt3),
-                    dir = d.type=="S" ? 0 : 2;
-                if (d.type=="EJ") {
-                    dr = 0;
-                }
-                else {
-                    mx += (dir-1) * dy * len/dr;
-                    my += -(dir-1) * dx * len/dr;
-                }
+                    // Midpoint
+                    // var dx = d.target.x - d.source.x,
+                    //     dy = d.target.y - d.source.y,
+                    //     dr = Math.sqrt(dx * dx + dy * dy) / 2,
+                    //     mx = d.source.x + dx,
+                    //     my = d.source.y + dy,
+                    //     r = d.type=="Sp" ? 0 : d.type=="S" ? 1 : 2;
+                    //     return [
+                    //         "M", d.source.x, d.source.y,
+                    //         "A", dr, dr, 0,0,1, mx, my,
+                    //         "A", dr, dr, 0,0,1, d.target.x, d.target.y
+                    //     ].join(" ");
+                        
+                    // // Midpoint v2
+                    var dx = d.target.x - d.source.x,
+                        dy = d.target.y - d.source.y,
+                        dr = Math.sqrt(dx * dx + dy * dy),
+                        mx = (d.target.x + d.source.x) / 2,
+                        my = (d.target.y + d.source.y) / 2,
+                        len = dr - ((dr/2) * sqrt3),
+                        dir = d.type=="S" ? 0 : 2;
+                    if (d.type=="EJ") {
+                        dr = 0;
+                    }
+                    else {
+                        mx += (dir-1) * dy * len/dr;
+                        my += -(dir-1) * dx * len/dr;
+                    }
 
-                return [
-                    "M", d.source.x, d.source.y,
-                    "A", dr, dr, 0, 0, dir/2, mx, my,
-                    "A", dr, dr, 0, 0, dir/2, d.target.x, d.target.y
-                ].join(" ");
-            });
-        }
-        else {
-            link.attr("d", function(d) {
-                return [
-                    "M", d.source.x, d.source.y,
-                    "L", (d.source.x + d.target.x)/2, (d.source.y + d.target.y)/2,
-                    "L", d.target.x, d.target.y
-                ].join(" ");
-            });
+                    return [
+                        "M", d.source.x, d.source.y,
+                        "A", dr, dr, 0, 0, dir/2, mx, my,
+                        "A", dr, dr, 0, 0, dir/2, d.target.x, d.target.y
+                    ].join(" ");
+                });
+            }   
+            else {            
+                link.attr("d", function(d) {
+                    return [
+                        "M", d.source.x, d.source.y,
+                        "L", (d.source.x + d.target.x)/2, (d.source.y + d.target.y)/2,
+                        "L", d.target.x, d.target.y
+                    ].join(" ");
+                });
+            }
         }
         node.attr("transform", function (d) { return "translate(" + d.x + "," + d.y + ")"; });
-        node.each(collide(0.2));
+        //node.each(collide(0.2));
     });
 }
 
@@ -657,29 +792,46 @@ function nodeClicked(d) {
 function connectedNodes(d) {    
     if (d != null) {   
         if ((highlightId == -1) || (highlightId == d.id)) {
+            
             // Reduce the opacity of all but the neighbouring nodes
             node.style("opacity", function (o) {
-                return neighboring(d, o) | neighboring(o, d) ? 1 : 0.1;
+                return neighboring(d, o) | neighboring(o, d) ? nodeOpacityDefault : nodeOpacityBackground;
             });
             node.classed("selectable", function (o) {
                 return neighboring(d, o) | neighboring(o, d) ? true : false;
             });
-            link.style("opacity", function (o) {
-                return d.id==o.from | d.id==o.to ? 1 : 0.05;
-            });
-            link.classed("selectable", function (o) {
-                return d.id==o.from | d.id==o.to ? true : false;
-            });
+
+            if (use_canvas) {
+                links.forEach(function(o) {
+                    o.opacity = d.id==o.from | d.id==o.to ? linkOpacityHighlight : linkOpacityBackground;
+                });
+            } else {
+                link.style("opacity", function (o) {
+                    return d.id==o.from | d.id==o.to ? linkOpacityHighlight : linkOpacityBackground;
+                });
+                link.classed("selectable", function (o) {
+                    return d.id==o.from | d.id==o.to ? true : false;
+                });
+            }
         }
     } else {
-        if (highlightId != -1){
+        if (highlightId != -1 || dragging){
             return;
         }
-        node.style("opacity", 1);
-        link.style("opacity", 0.25);
+        node.style("opacity", nodeOpacityDefault);
+        if(use_canvas) {
+            //links.forEach(function(o) { o.opacity = linkOpacityDefault; });
+            links.forEach(function(o) { o.opacity = linkOpacityScale(o.weight); });
+        } else {
+            link.style("opacity", linkOpacityDefault);
+        };
         node.on("mouseover", function(d) { connectedNodes(d); });
         node.on("click", function(d) { clicker(d, this); });
         node.call(drag);
+    }
+
+    if(use_canvas){
+        drawCanvas();
     }
 }
 
@@ -715,7 +867,13 @@ function dragged(d) {
 }
 
 function zoomed() {
-  container.attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
+    if (use_canvas) {
+        scale = d3.event.scale;
+        transX = d3.event.translate[0];
+        transY = d3.event.translate[1];
+        drawCanvas();
+    }
+    container.attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
 }
 
 collide = function(alpha) {
@@ -763,7 +921,7 @@ function isSelectedLink(d) {
 
 function linkMouseOver(d) {
     if (highlightId == -1 || isSelectedLink(d)) {
-        d3.select(this).style("opacity", 1);
+        d3.select(this).style("opacity", linkOpacityHighlight);
         container.append("text")
             .attr("class","labelText")
             .style("font-size", "11px")
@@ -780,7 +938,7 @@ function linkMouseOver(d) {
 
 function linkMouseOut(d) {
     if (highlightId == -1) {
-        d3.select(this).style("opacity", 0.25);        
+        d3.select(this).style("opacity", linkOpacityDefault);        
     }
     container.selectAll(".labelText").remove();
 }
@@ -800,12 +958,14 @@ function toggleArrows(checkbox) {
     showArrows = checkbox.checked;
     o = showArrows ? "visible" : "hidden";
     svg.selectAll("marker").attr("style", function(d) { return "fill: " + d + "; visibility:" + o +";"});
+    if (use_canvas)
+        drawCanvas();
 }
 
 function arcsplease(checkbox) {
-    force.stop();
+    //force.stop();
     arcs = checkbox.checked;
-    l=links;
+    l = links;
     updateLinks([]);
     updateLinks(l);
 }
@@ -1044,5 +1204,124 @@ function downloadPng() {
     var ctn = document.getElementById("graph");
     var svg = ctn.getElementsByTagName("svg")[0];
     saveSvgAsPng(svg, "graph.png");
+}
+
+
+// -----------------------------------------------------------------
+// Canvas drawing helpers
+// -----------------------------------------------------------------
+var arrow = [
+    [2, 0],
+    [-10, -4],
+    [-10, 4]
+];
+
+function rotatePoint(ang, x, y) {
+    return [
+        (x * Math.cos(ang)) - (y * Math.sin(ang)), 
+        (x * Math.sin(ang)) + (y * Math.cos(ang))
+    ];
+};
+
+function rotateShape(shape, ang) {
+    var rv = [];
+    for (p in shape)
+        rv.push(rotatePoint(ang, shape[p][0], shape[p][1]));
+    return rv;
+};
+
+function translateShape(shape, x, y) {
+    var rv = [];
+    for (p in shape)
+        rv.push([shape[p][0] + x, shape[p][1] + y]);
+    return rv;
+};
+
+function drawFilledPolygon(shape) {
+    //context.beginPath();
+    context.moveTo(shape[0][0], shape[0][1]);
+
+    for (p in shape)
+        if (p > 0) 
+            context.lineTo(shape[p][0], shape[p][1]);
+
+    context.lineTo(shape[0][0], shape[0][1]);
+    //context.fill();
+};
+
+function drawLine(x1, y1, x2, y2) {
+    context.moveTo(x1, y1);
+    context.lineTo(x2, y2);
+};
+
+function drawLineArrow(x1, y1, x2, y2) {    
+    var dx = x2 - x1;
+    var dy = y2 - y1;
+    var ang = Math.atan2(dy, dx);
+    kx = x1 + 0.5*dx;
+    ky = y1 + 0.5*dy;
+    drawFilledPolygon(translateShape(rotateShape(arrow, ang), kx, ky));
+};
+
+
+function drawCurveArrow(x1, y1, x2, y2) {
+    context.beginPath();
+    context.moveTo(x1, y1);
+    var k = draw_curve(x1, y1, x2, y2, 30);
+    context.stroke();
+
+    context.beginPath();
+    var ang = Math.atan2(y2-y1, x2-x1);
+    drawFilledPolygon(translateShape(rotateShape(arrow, ang), k.x, k.y));
+    context.fill();
+};
+
+
+
+function draw_curve(Ax, Ay, Bx, By, M) {
+    var dx = Bx - Ax,
+        dy = By - Ay,
+        dr = Math.sqrt(dx * dx + dy * dy);
+
+    // side is either 1 or -1 depending on which side you want the curve to be on.
+    // Find midpoint J
+    var Jx = Ax + (Bx - Ax) / 2
+    var Jy = Ay + (By - Ay) / 2
+
+    // We need a and b to find theta, and we need to know the sign of each to make sure that the orientation is correct.
+    var a = Bx - Ax
+    var asign = (a < 0 ? -1 : 1)
+    var b = By - Ay
+    var bsign = (b < 0 ? -1 : 1)
+    var theta = Math.atan(b / a)
+
+    // Find the point that's perpendicular to J on side
+    var costheta = asign * Math.cos(theta)
+    var sintheta = asign * Math.sin(theta)
+
+    // Find c and d
+    var c = M * sintheta
+    var d = M * costheta
+
+    // Use c and d to find Kx and Ky
+    var Kx = Jx - c
+    var Ky = Jy + d
+    // context.bezierCurveTo(Kx, Ky,Bx,By, Ax, Ax);
+    context.quadraticCurveTo(Kx, Ky, Bx, By);
+
+    // draw the ending arrowhead
+    var endRadians = Math.atan((dx) / (dy));
+    //context.stroke();
+
+    var t = 0.5; // given example value
+
+    var xx = (1 - t) * (1 - t) * Ax + 2 * (1 - t) * t * Kx + t * t * Bx;
+    var yy = (1 - t) * (1 - t) * Ay + 2 * (1 - t) * t * Ky + t * t * By;
+
+    var k = {};
+    k.x = xx;
+    k.y = yy;
+
+    return k;
 }
 

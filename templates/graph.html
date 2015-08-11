@@ -250,8 +250,11 @@
           <a href="javascript:downloadPng();" class="btn btn-sm btn-default btn-block" role="button" title="Download Png">Download as .png</a>
           
         </div>
-      </div>
+      </div><!-- Export panel -->
+    </div><!-- Right slider -->
 
+    <div id="footerwrapper">
+      <div id="footer"></div>
     </div>
   {% endif %}
 {% endblock %}
@@ -259,6 +262,7 @@
 {% block js_footer %}
 {{ super() }} 
 	<script type="text/javascript" src={{url_for('static', filename='js/d3.v3.min.js')}}></script>
+  <script type="text/javascript" src={{url_for('static', filename='js/d3-legend.min.js')}}></script>
   <script type="text/javascript" src={{url_for('static', filename='js/crossfilter.min.js')}}></script>  
   <script>
 

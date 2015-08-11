@@ -57,6 +57,8 @@ var presets = [
     {name: "Backward escape", g1:"ASH", g2:"VB, DB, RMD, RIM, SMD, VA, DA, DD", smin: 1, jmin: 1, length:2}
 ]
 
+var neuronTypes;
+
 
 //-------------------------------------------------------------------
 // Little helpers
@@ -143,7 +145,8 @@ function group_auto(data) {
 graph = function(id, d, canvas) {
 
     data = d;
-    use_canvas = canvas
+    use_canvas = canvas;
+    neuronTypes = d3.set(data.neurons.map(function(d) { return d.type;} ).sort()).values();
 
     zoom = d3.behavior.zoom().scaleExtent([0.75, 2]).on("zoom", zoomed); 
 
@@ -159,8 +162,10 @@ graph = function(id, d, canvas) {
     }
 
     svg = d3.select(id).append("svg")
-        .attr("viewBox", "0 0 " + width + " " + height)
-        .attr("preserveAspectRatio", "xMidYMid meet")
+        //.attr("viewBox", "0 0 " + width + " " + height)
+        //.attr("preserveAspectRatio", "xMidYMid meet")
+        .attr("width", width)
+        .attr("height", height)
         .call(zoom).on("dblclick.zoom", null);
 
     container = svg.append("g")
@@ -176,8 +181,9 @@ graph = function(id, d, canvas) {
     col_sensmot = d3.rgb(d3.interpolateRgb(col_sensory, col_motor)(0.5)).brighter(2).toString();
     col_sensint = d3.rgb(d3.interpolateRgb(col_sensory, col_inter)(0.5)).brighter(2).toString();
     col_intmot = d3.rgb(d3.interpolateRgb(col_inter, col_motor)(0.5)).brighter(1).toString();
-    colors = [col_inter, col_sensory, col_motor, col_intmot, col_sensint, col_sensmot, "#bbb"];
-    nodeColorScale = d3.scale.ordinal().range(colors);
+    //colors = [col_inter, col_sensory, col_motor, col_intmot, col_sensint, col_sensmot, "#bbb"];
+    colors = [col_inter, col_motor, col_intmot, col_sensory, col_sensint, col_sensmot, "#bbb"];
+    nodeColorScale = d3.scale.ordinal().domain(neuronTypes).range(colors);
     
     var degreeDomain = d3.extent(data.neurons, function(n) { return n.D; });
     nodeRadiusScale = d3.scale.linear().domain(degreeDomain).range([10,25]);
@@ -255,6 +261,83 @@ graph = function(id, d, canvas) {
     
     buildAdjacency();
     buildPresets();
+    buildLegend();
+
+    d3.select(window).on("resize", resize);
+}
+
+function resize() {
+    width = window.innerWidth;
+    height = window.innerHeight;
+    svg.attr('width', width).attr("height", height);
+    force.size([width, height]).resume();
+}
+
+function buildLegend() {
+    footer = d3.select("#footer").append("svg")
+        .attr("height", 100)
+        .attr("width", "100%");
+
+    // Color legend
+    footer.append("g")
+        .attr("class", "legendColor")
+        .attr("transform", "translate(20,20)");
+
+    var legendColor = d3.legend.color()
+        .shape("circle")
+        .shapeRadius(5)
+        .shapePadding(2)
+        .orient('vertical')
+        .scale(nodeColorScale);
+
+    footer.select(".legendColor").call(legendColor);
+
+    // Size legend
+    var sleg = footer.append("g")
+        .attr("transform", "translate(150,20)");
+    sleg.append("text")
+        .text("Neuron size by degree")
+    sleg.append("g")
+        .attr("class", "legendSize")
+        .attr("transform", "translate(0,30)");
+
+    var legendSize = d3.legend.size()
+        .shape('circle')
+        .shapePadding(1)
+        .cells([2,50,100])
+        .orient('horizontal')
+        .scale(nodeRadiusScale);
+
+    footer.select(".legendSize").call(legendSize);
+
+    // Line type legend
+    var lleg = footer.append("g")
+        .attr("transform", "translate(350,20)");
+    lleg.append("text")
+        .text("Connection type");
+    lleg.append("g")
+        .attr("class", "legendLine")
+        .attr("transform", "translate(0,30)");
+
+    line_solid = "M 0 0 h 20";
+    line_dashed = "M 0 0 h 4 m 2 0 h 4 m 2 0 h 4 m 2 0 h 4";
+    var lineScale = d3.scale.ordinal()
+        .domain(['Synapse/NMJ', 'EJ'])
+        .range([line_solid, line_dashed]);
+
+    var legendLine = d3.legend.symbol()
+        .scale(lineScale)
+        .orient("horizontal")
+        .shapePadding(30)
+        .labelOffset(20);
+
+    footer.select(".legendLine").call(legendLine);
+    // var lsol = d3.select(".legendLine").append("path")
+    //     .attr("d", line_dashed)
+    //     .attr("stroke-width", 1)
+    //     .attr("stroke", "black")
+    //     .attr("fill", "none");
+
 }
 
 function updateCrossFilter(n, s) {
@@ -406,7 +489,8 @@ function htmlForNode(d){
 }
 
 function htmlTabForNode(d){
-    var str = '<p><span class="badge stats-item">' + d.type + '</span>'
+    col = nodeColorScale(d.type);
+    var str = '<p><span class="badge stats-item" style="background-color:'+col+'">' + d.type + '</span>'
     
     var mods = null;
     if ("modalities" in d) {

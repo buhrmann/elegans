@@ -41,9 +41,29 @@ body {
 #graph {
   display: block; 
   position: absolute;
-  /*top: 100px;*/
   width: 100%; 
   margin: 0 auto;
+}
+
+#footerwrapper {  
+  position:fixed;
+  bottom: 0px;
+  width: 100%;
+  height: 100px;
+  text-align: center;
+}
+#footer {
+  margin: 0 auto;
+  left: -225px;
+  width: 450px;
+  background-color: rgba(245, 245, 245, 0.75);
+  border-top-left-radius: 10px;
+  border-top-right-radius: 10px;
+}
+
+/* Paths in symbol legend */
+path.swatch {
+  stroke: black;
 }
 
 .topwrapper {

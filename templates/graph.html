@@ -71,11 +71,11 @@
           </div>
         
           <div class="form-group" id="subw">
-            <label for="subwslider">Synapse min weight [1-10]: </label> <output for="subwSlider" id="subwlabel">1</output>
+            <label for="subwslider">Mininum number of <br>chemical contacts [1-10]: </label> <output for="subwSlider" id="subwlabel">1</output>
             <input type="range" id="subwslider" name="subw" value="1" min="1" max="10" oninput="document.getElementById('subwlabel').value = value;">            
           </div>
           <div class="form-group" id="subj">
-            <label for="subjslider">Junction min weight [1-10]: </label> <output for="subjSlider" id="subjlabel">1</output>
+            <label for="subjslider">Mininum number of <br>electrical contacts [1-10]: </label> <output for="subjSlider" id="subjlabel">1</output>
             <input type="range" id="subjslider" name="subj" value="1" min="1" max="10" oninput="document.getElementById('subjlabel').value = value;">            
           </div>
           <div class="form-group" id="subp">
@@ -152,11 +152,11 @@
             <input type="range" id="ndegslider" name="ndeg" value="0" min="0" max="200" oninput="filterNDeg(value)">            
           </div>
           <div class="form-group" id="wmin">
-            <label for="wminslider">Synapse min weight [1-40]:</label> <output for="wminslider" id="wminlabel">1</output>
+            <label for="wminslider">Mininum number of <br>chemical contacts [1-40]:</label> <output for="wminslider" id="wminlabel">1</output>
             <input type="range" id="wminslider" name="wmin" value="1" min="1" max="40" oninput="filterWMin(value)">            
           </div>
           <div class="form-group" id="jmin">
-            <label for="jminslider">Junction min weight [1-25]:</label> <output for="jminslider" id="jminlabel">1</output>
+            <label for="jminslider">Minimum number of <br>electrical contacts [1-25]:</label> <output for="jminslider" id="jminlabel">1</output>
             <input type="range" id="jminslider" name="jmin" value="1" min="1" max="25" oninput="filterJMin(value)">            
           </div>
           <div class="checkbox">
@@ -165,11 +165,11 @@
           <div class="checkbox">
             <label><input type="checkbox" onchange="toggleJunctions(this)" checked>Electrical junctions</label>
           </div>
-          <div class="checkbox">
+          <!-- <div class="checkbox">
             <label title="Indicate directionality"><input type="checkbox" onchange="toggleArrows(this)" checked>Arrows</label>
-          </div>
+          </div> -->
           <div class="checkbox">
-            <label title="Disambiguate multiple connections between two neurons"><input type="checkbox" onchange="arcsplease(this)">Arcs</label>
+            <label title="Disambiguate multiple connections between two neurons"><input type="checkbox" onchange="arcsplease(this)">Connections as arcs</label>
           </div>
         </div>
         </div>
@@ -256,6 +256,7 @@
     <div id="footerwrapper">
       <div id="footer"></div>
     </div>
+
   {% endif %}
 {% endblock %}
 

@@ -42,8 +42,8 @@ def index(canvas=None):
     NODE_CACHE = neo.neurons()
     REL_CACHE = neo.synapses_d3(NODE_CACHE, min_weight=0)
     jsn = json.dumps({'neurons':NODE_CACHE, 'synapses':REL_CACHE})
-    use_canvas = json.dumps(canvas == "canvas")
-    return render_template('graph.html', data=jsn, use_canvas=use_canvas)
+    use_canvas = canvas != "svg"
+    return render_template('graph.html', data=jsn, use_canvas=json.dumps(use_canvas))
 
 
 @APP.route('/_subgraph')

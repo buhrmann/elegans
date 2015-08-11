@@ -59,6 +59,7 @@ body {
   background-color: rgba(245, 245, 245, 0.75);
   border-top-left-radius: 10px;
   border-top-right-radius: 10px;
+  pointer-events: none;
 }
 
 /* Paths in symbol legend */

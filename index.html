@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta
+      name="description"
+      content="A C. elegans connectome explorer and neural network visualization"
+    >
+    <title>Worm Circuitry Explorer</title>
+    <link rel="shortcut icon" href="/static/images/worm-32.png">
+    <link rel="stylesheet" href="/static/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/static/css/d3.css">
+    <link rel="stylesheet" href="/src/styles/app.css">
+  </head>
+  <body class="graph-page">
+    <main id="app-shell">
+      <p class="status-banner hidden" id="graph-status" role="status"></p>
+      <div id="graph"></div>
+
+      <div class="topwrapper out" id="intro-panel">
+        <div class="introheader">
+          <div class="introheader-title">
+            <h3>Worm Circuitry Explorer</h3>
+            <button
+              type="button"
+              class="intro-close"
+              id="intro-handle"
+              aria-label="Close intro panel"
+            >
+              <span class="glyphicon glyphicon-remove"></span>
+            </button>
+          </div>
+          <p>
+            The Worm Circuitry Explorer allows interactive exploration of the
+            <em>C. elegans</em> connectome.
+          </p>
+
+          <h4>Usage</h4>
+          <dl class="dl-horizontal">
+            <dt>Hover</dt>
+            <dd>Highlights a neuron's immediate neighborhood.</dd>
+            <dt>Click</dt>
+            <dd>
+              Selects a node and pins its metadata in the panel on the right.
+            </dd>
+            <dt>Drag</dt>
+            <dd>Moves and pins a node to a fixed position.</dd>
+            <dt>Dbl-click</dt>
+            <dd>Releases a pinned node.</dd>
+          </dl>
+          <h5>Subcircuits</h5>
+          <p>
+            Choose source and target neuron groups, constrain path length and
+            connection thresholds, then fetch the subgraph connecting them.
+            Expand adds back all direct connections among the fetched neurons.
+          </p>
+          <p class="intro-actions">
+            <button type="button" class="btn btn-success" id="intro-toggle">
+              Start Now
+            </button>
+          </p>
+          <div class="intro-about">
+            <h4>About</h4>
+            <p>
+              <a href="https://en.wikipedia.org/wiki/Caenorhabditis_elegans"><em
+                >Caenorhabditis elegans</em></a>
+              is a nematode worm of particular interest to many researchers as
+              it was the first multicellular organism to have its whole genome
+              sequenced, and remains the only organism whose connectome has
+              been completed in its entirety.
+            </p>
+            <p>
+              The Worm Circuitry Explorer allows visual and interactive
+              exploration of this connectome. Its main purpose is to help
+              researchers and modelers inspect subcircuits that may underlie
+              particular worm behaviors.
+            </p>
+
+            <h5>Data Sources</h5>
+            <p>
+              The explorer covers the connectivity between the 279 somatic
+              neurons whose interconnections are best established. The core
+              connectivity is based on Chen et al. (2006) and Varshney et al.
+              (2011), supplemented with position data from the Dynamic
+              Connectome project, neuron classes from WormWeb, and sensory
+              annotations maintained locally in this repository.
+            </p>
+
+            <h5>Visualization</h5>
+            <p>
+              The graph is rendered with modern D3 in the browser. Nodes can be
+              selected to inspect metadata, dragged to pin positions, filtered
+              by degree and connection thresholds, and exported in multiple
+              graph formats.
+            </p>
+
+            <h5>References</h5>
+            <ol class="bib">
+              <li>
+                Nikhil Bhatla, <a href="http://wormweb.org/">WormWeb.org</a>
+              </li>
+              <li>
+                Chen, Hall, and Chklovskii (2006). <em>Wiring optimization can
+                  relate neuronal structure and function.</em>
+                PNAS 103: 4723-4728.
+              </li>
+              <li>
+                Choe, McCormick, and Koh (2004). <em>Network connectivity
+                  analysis on the temporally augmented C. elegans web: A pilot
+                  study.</em>
+              </li>
+              <li>
+                Varshney, Chen, Paniagua, Hall and Chklovskii (2011). <em
+                >Structural properties of the C. elegans neuronal network.</em>
+              </li>
+              <li>WormAtlas, Altun et al., 2002-2015.</li>
+            </ol>
+          </div>
+        </div>
+        <button
+          class="uihandle uihandle-top"
+          id="intro-handle-tab"
+          type="button"
+          aria-label="Open intro panel"
+        >
+          <span class="glyphicon glyphicon-info-sign"></span>
+        </button>
+      </div>
+
+      <aside class="uiwidget uiwidget-left out" id="left-widget">
+        <button
+          type="button"
+          class="uihandle uihandle-edge uihandle-left"
+          id="left-handle"
+          aria-controls="left-widget"
+          aria-expanded="false"
+          aria-label="Toggle controls sidebar"
+        >
+          <span class="glyphicon glyphicon-chevron-right"></span>
+        </button>
+
+        <div class="uiwidget-body">
+          <section class="formpanel formpanel-static">
+            <div class="formpanel-heading">
+              <span class="formpanel-title">Find neuron</span>
+            </div>
+            <div class="panel-body">
+              <div class="input-group input-group-sm">
+                <input
+                  id="search-node"
+                  list="search-node-options"
+                  type="text"
+                  placeholder="Neuron name"
+                  class="form-control"
+                >
+                <span class="input-group-btn">
+                  <button
+                    type="button"
+                    id="search-button"
+                    class="btn btn-default"
+                  >
+                    Search
+                  </button>
+                </span>
+              </div>
+              <datalist id="search-node-options"></datalist>
+            </div>
+          </section>
+
+          <div class="uiwidget-scroll">
+            <details class="formpanel" open>
+              <summary>Subgraph</summary>
+              <div class="panel-body">
+                <p>
+                  Choose two sets of neuron groups and fetch the connecting
+                  subgraph.
+                </p>
+
+                <div class="form-group token-input-group">
+                  <label for="group1">Source groups</label>
+                  <input
+                    id="group1"
+                    type="search"
+                    value="ASE"
+                    class="form-control input-sm"
+                  >
+                </div>
+
+                <div class="form-group">
+                  <label for="path-direction">Direction</label>
+                  <select id="path-direction" class="form-control input-sm">
+                    <option value="uni">Directed</option>
+                    <option value="bi">Bidirectional</option>
+                  </select>
+                </div>
+
+                <div class="form-group token-input-group">
+                  <label for="group2">Target groups</label>
+                  <input
+                    id="group2"
+                    type="search"
+                    value="SMB"
+                    class="form-control input-sm"
+                  >
+                </div>
+
+                <div class="form-group token-input-group">
+                  <label for="rec-sel">Include receptors</label>
+                  <input
+                    id="rec-sel"
+                    type="search"
+                    class="form-control input-sm"
+                  >
+                </div>
+
+                <div class="form-group">
+                  <label>Include muscles</label>
+                  <div>
+                    <label class="checkbox-inline"><input
+                        type="checkbox"
+                        id="mhead-check"
+                      >Head</label>
+                    <label class="checkbox-inline"><input
+                        type="checkbox"
+                        id="mneck-check"
+                      >Neck</label>
+                    <label class="checkbox-inline"><input
+                        type="checkbox"
+                        id="mbody-check"
+                      >Body</label>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label for="subwslider">Minimum chemical contacts</label>
+                  <output for="subwslider" id="subwlabel">1</output>
+                  <input
+                    type="range"
+                    id="subwslider"
+                    value="1"
+                    min="1"
+                    max="10"
+                  >
+                </div>
+
+                <div class="form-group">
+                  <label for="subjslider">Minimum electrical contacts</label>
+                  <output for="subjslider" id="subjlabel">1</output>
+                  <input
+                    type="range"
+                    id="subjslider"
+                    value="1"
+                    min="1"
+                    max="10"
+                  >
+                </div>
+
+                <div class="form-group">
+                  <label for="subpslider">Maximum path length</label>
+                  <output for="subpslider" id="subplabel">3</output>
+                  <input type="range" id="subpslider" value="3" min="1" max="4">
+                </div>
+
+                <div class="form-group">
+                  <label for="preset-select">Presets</label>
+                  <select id="preset-select" class="form-control input-sm">
+                    <option value="">Choose a preset</option>
+                  </select>
+                </div>
+
+                <div
+                  class="btn-group btn-group-justified btn-group-sm"
+                  role="group"
+                >
+                  <a href="#" id="fetchbutton" class="btn btn-default">Fetch</a>
+                  <a href="#" id="expandbutton" class="btn btn-default disabled"
+                  >Expand</a>
+                  <a href="#" id="resetbutton" class="btn btn-default">Reset</a>
+                </div>
+              </div>
+            </details>
+
+            <details class="formpanel">
+              <summary>PubMed</summary>
+              <div class="panel-body">
+                <p>
+                  Filter neuron groups by PubMed citation count for a query
+                  term.
+                </p>
+                <div class="form-group">
+                  <input
+                    id="pmsearch"
+                    type="search"
+                    placeholder="chemotaxis"
+                    class="form-control input-sm"
+                  >
+                </div>
+                <div class="form-group">
+                  <label for="pubnumslider">Minimum citations</label>
+                  <output for="pubnumslider" id="pubnumlabel">2</output>
+                  <input
+                    type="range"
+                    id="pubnumslider"
+                    value="2"
+                    min="1"
+                    max="20"
+                  >
+                </div>
+                <div class="checkbox">
+                  <label><input type="checkbox" id="pubmed-check">Populate
+                    only</label>
+                </div>
+                <button
+                  type="button"
+                  id="pmbutton"
+                  class="btn btn-default btn-sm btn-block"
+                >
+                  Search PubMed
+                </button>
+                <p class="status-text" id="pubmed-status" role="status"></p>
+              </div>
+            </details>
+
+            <details class="formpanel">
+              <summary>Visibility</summary>
+              <div class="panel-body">
+                <div
+                  class="btn-group btn-group-xs btn-group-justified"
+                  role="group"
+                >
+                  <label class="btn btn-default active">
+                    <input
+                      type="radio"
+                      name="visibility-mode"
+                      value="prune"
+                      checked
+                    > Prune
+                  </label>
+                  <label class="btn btn-default">
+                    <input type="radio" name="visibility-mode" value="hide">
+                    Hide
+                  </label>
+                </div>
+
+                <div class="form-group">
+                  <label for="ndegslider">Node degree</label>
+                  <output for="ndegslider" id="ndeglabel">0</output>
+                  <input
+                    type="range"
+                    id="ndegslider"
+                    value="0"
+                    min="0"
+                    max="200"
+                  >
+                </div>
+
+                <div class="form-group">
+                  <label for="wminslider">Minimum chemical contacts</label>
+                  <output for="wminslider" id="wminlabel">1</output>
+                  <input
+                    type="range"
+                    id="wminslider"
+                    value="1"
+                    min="1"
+                    max="40"
+                  >
+                </div>
+
+                <div class="form-group">
+                  <label for="jminslider">Minimum electrical contacts</label>
+                  <output for="jminslider" id="jminlabel">1</output>
+                  <input
+                    type="range"
+                    id="jminslider"
+                    value="1"
+                    min="1"
+                    max="25"
+                  >
+                </div>
+
+                <div class="checkbox">
+                  <label><input
+                      type="checkbox"
+                      id="show-synapses"
+                      checked
+                    >Chemical synapses</label>
+                </div>
+                <div class="checkbox">
+                  <label><input
+                      type="checkbox"
+                      id="show-junctions"
+                      checked
+                    >Electrical junctions</label>
+                </div>
+                <div class="checkbox">
+                  <label><input type="checkbox" id="show-arcs">Connections as
+                    arcs</label>
+                </div>
+              </div>
+            </details>
+          </div>
+        </div>
+      </aside>
+
+      <aside class="uiwidget uiwidget-right out" id="right-widget">
+        <button
+          type="button"
+          class="uihandle uihandle-edge uihandle-right"
+          id="right-handle"
+          aria-controls="right-widget"
+          aria-expanded="false"
+          aria-label="Toggle info sidebar"
+        >
+          <span class="glyphicon glyphicon-chevron-left"></span>
+        </button>
+
+        <div class="uiwidget-body">
+          <section class="formpanel formpanel-static">
+            <div class="formpanel-heading">
+              <span class="formpanel-title">Statistics</span>
+            </div>
+            <div class="panel-body">
+              <ul class="list-group list-group-sm">
+                <li class="list-group-item">
+                  <span class="badge" id="stats-n">0</span>Neurons
+                </li>
+                <li class="list-group-item">
+                  <span class="badge" id="stats-m">0</span>Muscles
+                </li>
+                <li class="list-group-item">
+                  <span class="badge" id="stats-s">0</span>Chemical synapses
+                </li>
+                <li class="list-group-item">
+                  <span class="badge" id="stats-ej">0</span>Electrical junctions
+                </li>
+                <li class="list-group-item">
+                  <span class="badge" id="stats-nmj">0</span>NM junctions
+                </li>
+              </ul>
+            </div>
+          </section>
+
+          <div class="uiwidget-scroll">
+            <details class="formpanel" open>
+              <summary><span id="node-heading">Node info</span></summary>
+              <div class="panel-body" id="nodeinfo">Click to select...</div>
+            </details>
+
+            <details class="formpanel">
+              <summary>Export</summary>
+              <div class="panel-body">
+                <p>Download the current fetched graph in a portable format.</p>
+                <div class="form-group">
+                  <label for="export-format">Format</label>
+                  <select id="export-format" class="form-control input-sm">
+                    <option value="json-list">JSON (node-link)</option>
+                    <option value="json-graph">JSON (adjacency)</option>
+                    <option value="graphml">GraphML</option>
+                    <option value="gml">GML</option>
+                    <option value="adj">Adjacency list</option>
+                  </select>
+                </div>
+                <button
+                  type="button"
+                  id="export-button"
+                  class="btn btn-default btn-sm btn-block"
+                >
+                  Export
+                </button>
+                <p class="export-divider">
+                  Or download the current SVG view as an image.
+                </p>
+                <button
+                  type="button"
+                  id="download-png"
+                  class="btn btn-default btn-sm btn-block"
+                >
+                  Download PNG
+                </button>
+              </div>
+            </details>
+          </div>
+        </div>
+      </aside>
+    </main>
+
+    <div id="footerwrapper">
+      <div id="footer" class="noselect">
+        <div class="legend-grid">
+          <div>
+            <strong>Neuron type</strong>
+            <div class="legend-row">
+              <span class="legend-dot sensory"></span>Sensory
+            </div>
+            <div class="legend-row">
+              <span class="legend-dot inter"></span>Inter
+            </div>
+            <div class="legend-row">
+              <span class="legend-dot motor"></span>Motor
+            </div>
+          </div>
+          <div>
+            <strong>Node size</strong>
+            <div class="legend-row">Scaled by total degree</div>
+            <div class="legend-row">Dashed border: selected</div>
+            <div class="legend-row">Solid border: pinned</div>
+          </div>
+          <div>
+            <strong>Edge type</strong>
+            <div class="legend-row">
+              <span class="legend-line synapse"></span>Synapse / NMJ
+            </div>
+            <div class="legend-row">
+              <span class="legend-line ej"></span>Electrical junction
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

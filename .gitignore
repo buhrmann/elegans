@@ -55,3 +55,10 @@ target/
 
 # Exported data
 *.graphml
+
+# Node / Vite
+node_modules/
+dist/
+.vite/
+coverage/
+public/data/

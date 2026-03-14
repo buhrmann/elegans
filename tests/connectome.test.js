@@ -150,10 +150,15 @@ test("export serializers emit the expected wire formats", () => {
     { id: "neuron/B", name: "B", type: "inter", group: "G2", kind: "neuron", inD: 1, outD: 0, D: 1 },
   ];
   const edges = [{ id: "edge-ab", sourceId: "neuron/A", targetId: "neuron/B", type: "S", weight: 2 }];
+  const graphml = serializeGraphML(nodes, edges);
 
   assert.match(serializeNodeLink(nodes, edges), /"links": \[/);
   assert.match(serializeAdjacency(nodes, edges), /"neuron\/A"/);
-  assert.match(serializeGraphML(nodes, edges), /<graphml/);
+  assert.match(graphml, /<graphml/);
+  assert.match(graphml, /<key id="node_name" for="node" attr.name="name" attr.type="string"/);
+  assert.match(graphml, /<key id="edge_weight" for="edge" attr.name="weight" attr.type="double"/);
+  assert.match(graphml, /<data key="node_name">A<\/data>/);
+  assert.match(graphml, /<data key="edge_type">S<\/data>/);
   assert.match(serializeGml(nodes, edges), /graph \[/);
   assert.match(serializeAdjList(nodes, edges), /neuron\/A neuron\/B/);
 });
